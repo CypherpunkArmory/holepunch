@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "subdomain",
+  "definitions": {
+    "subdomain": {
+      "allOf": [
+        {
+          "$ref": "json-api.json#/definitions/data"
+        },
+        {
+          "properties": {
+            "attributes": {
+              "required": [
+                "name",
+                "inUse",
+                "reserved"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "inUse": {
+                  "type": "boolean"
+                },
+                "reserved": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "required": ["data"],
+  "properties": {
+    "data": { "$ref": "#/definitions/subdomain" }
+  }
+}

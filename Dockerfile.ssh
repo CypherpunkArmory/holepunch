@@ -1,0 +1,20 @@
+FROM rastasheep/ubuntu-sshd:18.04
+
+RUN sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
+
+RUN echo "GatewayPorts yes" >> /etc/ssh/sshd_config && \
+  echo "AllowTcpForwarding yes" >> /etc/ssh/sshd_config && \
+  echo "AllowStreamLocalForwarding yes" >> /etc/ssh/sshd_config && \
+  echo "PermitTunnel yes" >> /etc/ssh/sshd_config
+
+RUN useradd -m -s /usr/sbin/nologin punch && \
+  mkdir /home/punch/.ssh && \
+  chown punch:punch /home/punch/.ssh && \
+  chmod 0700 /home/punch/.ssh && \
+  touch /home/punch/.ssh/authorized_keys && \
+  chown punch:punch /home/punch/.ssh/authorized_keys && \
+  chmod 0600 /home/punch/.ssh/authorized_keys
+
+ADD run_with_password.sh /run_with_password.sh
+RUN chmod +x /run_with_password.sh
+CMD ["/run_with_password.sh"]

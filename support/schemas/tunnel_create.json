@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$id": "tunnel_create",
+  "definitions": {
+    "tunnel": {
+      "allOf": [
+        {
+          "$ref": "json-api.json#/definitions/post_data"
+        },
+        {
+          "properties": {
+            "attributes": {
+              "required": [
+                "port",
+                "sshKey"
+              ],
+              "properties": {
+                "port": {
+                  "type": "array"
+                },
+                "sshKey": {
+                  "type": "string"
+                }
+              }
+            },
+            "relationships": {
+              "type": "object",
+              "properties": {
+                "subdomain": {
+                  "$ref": "json-api.json#/definitions/relationship"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "required": ["data"],
+  "properties": {
+    "data": { "$ref": "#/definitions/tunnel" }
+  }
+}

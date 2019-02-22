@@ -1,0 +1,173 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "http://json-schema.org/draft-06/schema#",
+  "definitions": {
+    "post_data": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object"
+        },
+        "links": {
+          "$ref": "#/definitions/links"
+        },
+        "relationships": {
+          "type": "object",
+          "patternProperties": {
+            "^([a-zA-Z0-9]+([a-zA-Z0-9_-]*?)[a-zA-Z0-9])$": {
+              "$ref": "json-api.json#/definitions/relationship"
+            }
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "attributes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "attributes": {
+          "type": "object"
+        },
+        "links": {
+          "$ref": "#/definitions/links"
+        },
+        "relationships": {
+          "type": "object"
+        }
+      }
+    },
+    "included": {
+      "type": "array",
+      "items": {
+        "$rel": "#/definitions/data"
+      }
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "link": {
+      "anyOf": [
+        {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "href",
+            "meta"
+          ],
+          "properties": {
+            "href": {
+              "type": [
+                "string"
+              ],
+              "format": "uri"
+            },
+            "meta": {
+              "$ref": "#/definitions/meta"
+            }
+          }
+        }
+      ]
+    },
+    "links": {
+      "type": "object",
+      "required": [
+        "self"
+      ],
+      "properties": {
+        "self": {
+          "$ref": "#/definitions/link"
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "anyOf": [
+        { "required": [ "links" ] },
+        { "required": ["meta"] },
+        { "required": ["data" ] }
+      ],
+      "properties": {
+        "links": {
+          "$ref": "#/definitions/links"
+        },
+        "meta": {
+          "$ref": "#/definitions/meta"
+        },
+        "data": {
+          "type": [
+            "object",
+            "array"
+          ],
+          "required": [
+            "id",
+            "type"
+          ],
+          "items": {
+            "$rel": "#/definitions/relationship/properties/data"
+          },
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "pagination-links": {
+      "type": "object",
+      "required": [
+        "self",
+        "first",
+        "prev",
+        "next",
+        "last"
+      ],
+      "properties": {
+        "self": {
+          "$ref": "#/definitions/link"
+        },
+        "first": {
+          "$ref": "#/definitions/link"
+        },
+        "prev": {
+          "$ref": "#/definitions/link"
+        },
+        "next": {
+          "$ref": "#/definitions/link"
+        },
+        "last": {
+          "$ref": "#/definitions/link"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-06/schema#",
+  "$id": "subdomain_create",
+  "definitions": {
+    "subdomain": {
+      "allOf": [
+        {
+          "$ref": "json-api.json#/definitions/post_data"
+        },
+        {
+          "properties": {
+            "attributes": {
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "required": ["data"],
+  "properties": {
+    "data": { "$ref": "#/definitions/subdomain" }
+  }
+}
