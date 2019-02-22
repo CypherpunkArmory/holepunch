@@ -2,7 +2,7 @@ venv/
 .pytest_cache/
 .vagrant/
 .DS_Store
-.env
+.env.*
 .flaskenv
 *.pyc
 *.pyo
