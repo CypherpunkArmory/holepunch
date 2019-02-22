@@ -92,6 +92,7 @@ rq-dashboard = "*"
 flask-rq2 = "*"
 flask-cli = "*"
 pytest-sugar = "*"
+flask-cors = "*"
 
 [requires]
 python_version = "3.7"

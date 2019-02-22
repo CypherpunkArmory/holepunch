@@ -10,7 +10,7 @@ from sqlalchemy.exc import DatabaseError
 from momblish import Momblish
 from momblish.corpus import Corpus
 from momblish.corpus_analyzer import CorpusAnalyzer
-from redis import Redis
+from flask_cors import CORS
 from flask_rq2 import RQ
 import rollbar
 import rollbar.contrib.flask
@@ -55,6 +55,7 @@ def create_app(env: str = "development"):
     jwt.init_app(app)
     json_schema_manager.init_app(app)
     Q.init_app(app)
+    CORS(app)
 
     from app.routes.tunnels import tunnel_blueprint
     from app.routes.subdomains import subdomain_blueprint
