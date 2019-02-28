@@ -1,20 +1,43 @@
-job "web" {
+job "holepunch" {
   datacenters = ["city"]
 
   type = "service"
 
-  group "holepunch" {
+  group "services" {
+    vault {
+      policies = ["holepunch-policy"]
+
+      change_mode   = "restart"
+    }
+
     count = 1
-    task "flask" {
+    task "web" {
       driver = "docker"
 
       config = {
-        image = "cypherpunkarmory/holepunch-production:0.0.18"
+        image = "cypherpunkarmory/holepunch-production:0.0.22"
 
         port_map {
           http = 5000
         }
       }
+
+      template {
+        data = <<EOH
+# Empty lines are also ignored
+{{with secret "secret/holepunch"}}
+DATABASE_URL={{.Data.DATABASE_URL}}
+JWT_SECRET_KEY={{.Data.JWT_SECRET_KEY}}
+MAIL_PASSWORD={{.Data.MAIL_PASSWORD}}
+MAIL_USERNAME={{.Data.MAIL_USERNAME}}
+ROLLBAR_TOKEN={{.Data.ROLLBAR_TOKEN}}
+{{end}}
+EOH
+        destination = ".env.production"
+        env         = true
+        change_mode = "restart"
+      }
+
 
       env {
         FLASK_ENV = "production"

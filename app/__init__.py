@@ -89,7 +89,7 @@ def create_app(env: str = "development"):
     def debug_error_handler(e):
         return jsonify(
             error=500, text=str(e), exception=traceback.format_exc().split("\n")
-        )
+        ), 500
 
     @app.before_request
     def parse_query_params():
