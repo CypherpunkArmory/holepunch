@@ -68,7 +68,7 @@ class TunnelCreationService:
         meta = {
             "ssh_key": self.ssh_key,
             "box_name": self.subdomain.name,
-            "base_url": os.getenv("BASE_URL", "holepunch.box"),
+            "base_url": os.getenv("BASE_SERVICE_URL", ".local"),
         }
 
         result = nomad_client.job.dispatch_job("ssh-client", meta=meta)

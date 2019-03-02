@@ -69,6 +69,7 @@ class ProductionConfig(Config):
     MAIL_PASSWORD = os.environ.get("MAIL_PASSWORD")
     MAIL_DEFAULT_SENDER = "noreply@holepunch.io"
     ROLLBAR_TOKEN = os.environ.get("ROLLBAR_TOKEN")
+    RQ_REDIS_URL = os.environ.get("RQ_REDIS_URL")
 
 
 app_config = {

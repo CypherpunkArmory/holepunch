@@ -34,11 +34,10 @@ def send_confirm_email(email_address, token_url):
     msg.attach(part2)
 
     try:
-        server = smtplib.SMTP(host, port)
         if tls:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
+            server = smtplib.SMTP_SSL(host, port)
+        else:
+            server = smtplib.SMTP(host,port)
         server.login(smtp_username, smtp_password)
         server.sendmail("noreply@holepunch.io", email_address, msg.as_string())
         server.close()

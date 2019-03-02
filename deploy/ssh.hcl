@@ -33,10 +33,6 @@ job "ssh-client" {
       service {
         name = "box-${NOMAD_META_BOX_NAME}-ssh"
 
-        tags = [
-          "urlprefix-:${NOMAD_SSH_EXTERNAL_PORT} proto=tcp",
-        ]
-
         port = "ssh"
 
         check {
@@ -69,10 +65,10 @@ job "ssh-client" {
       }
 
       service {
-        name = "box-${NOMAD_META_BOX_NAME}-http"
+        name = "box-${NOMAD_META_BOX_NAME}-https"
 
         tags = [
-          "urlprefix-${NOMAD_META_BOX_NAME}.${NOMAD_META_BASE_URL}/ proto=https tlsskipverify=true"
+          "urlprefix-${NOMAD_META_BOX_NAME}.${NOMAD_META_BASE_URL}/ proto=tcp+sni"
         ]
 
         port = "https"
