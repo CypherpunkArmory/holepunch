@@ -1,0 +1,81 @@
+# Python CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-python/ for more details
+#
+version: 2
+jobs:
+  python_lint:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout
+
+      - run:
+            name: Install black
+            command: |
+                sudo pip install black
+
+      - run:
+          name: run black
+          command: black --check .
+
+  build:
+    machine: true
+
+    working_directory: ~/holepunch
+
+    steps:
+      - checkout
+
+      - run:
+          name: install dockerize
+          command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+          environment:
+            DOCKERIZE_VERSION: v0.3.0
+
+      - run: docker build -t holepunch --build-arg APP_NAME=holepunch . 
+
+      - run:
+          name: Start container
+          command: |
+            set -x
+            docker-compose up --build -d
+
+      - run:
+          name: Wait for db
+          command: dockerize -wait tcp://localhost:5432 -timeout 1m
+
+      - run:
+          name: Wait for web
+          command: dockerize -wait http://localhost:5000 -timeout 1m            
+
+      - run: 
+          name: Create databases
+          command: |
+            ./dbsetup.sh
+
+      - run:
+          name: init db
+          command: |
+            docker-compose exec web flask db upgrade            
+
+      - run: 
+          name: Run Unit Tests
+          command: |
+            set -x
+            docker-compose exec web pytest
+
+      - run:
+          name: Docker-compose down
+          command: |
+            set -x
+            docker-compose down
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - python_lint   
+      - build:
+          requires:
+            - python_lint

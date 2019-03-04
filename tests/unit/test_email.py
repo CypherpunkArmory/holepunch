@@ -1,10 +1,7 @@
 import pytest
 
 from app.jobs.email import send_confirm_email
-from app.services.authentication import (
-    encode_token,
-    generate_registration_url,
-)
+from app.services.authentication import encode_token, generate_registration_url
 import requests
 import time
 
@@ -38,7 +35,7 @@ class TestEmailJob(object):
             time.sleep(1)
 
             with pytest.raises(Exception):
-                send_confirm_email(current_user.email, 'DEADBEEF')
+                send_confirm_email(current_user.email, "DEADBEEF")
 
         finally:
             requests.delete(url)

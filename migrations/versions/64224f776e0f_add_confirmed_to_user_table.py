@@ -17,7 +17,10 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("user", sa.Column("confirmed", sa.BOOLEAN, nullable=False, server_default='False'))
+    op.add_column(
+        "user",
+        sa.Column("confirmed", sa.BOOLEAN, nullable=False, server_default="False"),
+    )
     pass
 
 
