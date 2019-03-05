@@ -79,3 +79,8 @@ workflows:
       - build:
           requires:
             - python_lint
+          filters:
+            branches:
+              only:
+                - master
+
