@@ -1,3 +1,5 @@
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/62df8afdbbe64aeb92e32be409932f6e)](https://www.codacy.com/app/CypherpunkArmory/holepunch?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=CypherpunkArmory/holepunch&amp;utm_campaign=Badge_Grade)
+[![Codacy Badge](https://api.codacy.com/project/badge/Coverage/62df8afdbbe64aeb92e32be409932f6e)](https://www.codacy.com/app/CypherpunkArmory/holepunch?utm_source=github.com&utm_medium=referral&utm_content=CypherpunkArmory/holepunch&utm_campaign=Badge_Coverage)
 [![CircleCI](https://circleci.com/gh/CypherpunkArmory/holepunch.svg?style=svg)](https://circleci.com/gh/CypherpunkArmory/holepunch)
 # Holepunch
 
