@@ -14,10 +14,16 @@ class UserFactory(Factory):
 
     email = Faker("email")
     confirmed = True
+    tier = "paid"
 
     @post_generation
     def set_password(user, create, extracted, **kwargs):
         user.set_password("123123")
+
+
+@register
+class FreeUserFactory(UserFactory):
+    tier = "free"
 
 
 @register

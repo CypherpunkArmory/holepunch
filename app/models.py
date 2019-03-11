@@ -22,6 +22,7 @@ class User(db.Model):
     confirmed = db.Column(db.Boolean)
     email = db.Column(db.String(64), index=True, unique=True)
     password_hash = db.Column(db.String(128))
+    tier = db.Column(db.String(64), nullable=False)
     subdomains = db.relationship("Subdomain", back_populates="user", lazy="dynamic")
     tunnels = db.relationship("Tunnel", secondary="subdomain", lazy="dynamic")
 

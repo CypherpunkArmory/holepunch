@@ -6,8 +6,8 @@ class TestRegister(object):
 
     def test_root_accessible(self, client):
         """Root url is accessible with no login"""
-        res = client.get("/")
-        assert res.get_data() == b"Greetings User!"
+        res = client.get("/health_check")
+        assert res.get_data() == b"OK"
 
     def test_register_with_email_and_password(self, client):
         """Post to /user url returns a 204 on success"""

@@ -1,6 +1,6 @@
 from app.models import Subdomain
 from app import db
-from tests.factories import subdomain
+from tests.factories import subdomain, user
 from tests.support.assertions import assert_valid_schema
 from dpath.util import values
 
@@ -45,6 +45,43 @@ class TestSubdomain(object):
 
         assert_valid_schema(res.get_data(), "subdomain.json")
         assert post_subdomain_count > pre_subdomain_count
+
+    def test_subdomain_reserve_free_tier(self, free_client):
+        """User cant reserve a subdomain if they are free tier"""
+
+        res = free_client.post(
+            "/subdomains",
+            json={"data": {"type": "subdomain", "attributes": {"name": "test"}}},
+        )
+
+        assert res.status_code == 403
+
+    def test_subdomain_reserve_paid_over_limit(self, client, current_user, session):
+        """User can't reserve more than 5 subdomains if they are paid tier"""
+
+        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="subby-sub")
+        sub2 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub-subby")
+        sub3 = subdomain.ReservedSubdomainFactory(
+            user=current_user, name="subby-sub-sub"
+        )
+        sub4 = subdomain.ReservedSubdomainFactory(
+            user=current_user, name="sub-subby-subby"
+        )
+        sub5 = subdomain.ReservedSubdomainFactory(
+            user=current_user, name="subby-sub-sup"
+        )
+        session.add(sub1)
+        session.add(sub2)
+        session.add(sub3)
+        session.add(sub4)
+        session.add(sub5)
+        session.flush()
+        res = client.post(
+            "/subdomains",
+            json={"data": {"type": "subdomain", "attributes": {"name": "test"}}},
+        )
+
+        assert res.status_code == 403
 
     def test_subdomain_release_owned(self, client, current_user):
         """User can release a subdomain they own"""

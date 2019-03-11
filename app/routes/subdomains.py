@@ -14,6 +14,7 @@ from app.utils.errors import (
     SubdomainError,
     SubdomainTaken,
     SubdomainInUse,
+    SubdomainLimitReached,
 )
 from app.utils.json import dig, json_api
 
@@ -49,6 +50,8 @@ def subdomain_reserve():
             json_api(BadRequest(detail="Request does not match schema."), ErrorSchema),
             400,
         )
+    except SubdomainLimitReached:
+        return json_api(SubdomainLimitReached, ErrorSchema), 403
     except SubdomainTaken:
         return json_api(SubdomainTaken, ErrorSchema), 400
     except SubdomainError:

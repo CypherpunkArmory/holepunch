@@ -59,6 +59,12 @@ def client(app, current_user):
 
 
 @pytest.fixture
+def free_client(app, current_free_user):
+    app.test_client_class = TestClient
+    return app.test_client(user=current_free_user)
+
+
+@pytest.fixture
 def refresh_client(app, current_user):
     app.test_client_class = TestClientSession
     return app.test_client(user=current_user)
@@ -67,6 +73,14 @@ def refresh_client(app, current_user):
 @pytest.fixture
 def current_user(session):
     u = user.UserFactory()
+    session.add(u)
+    session.flush()
+    return u
+
+
+@pytest.fixture
+def current_free_user(session):
+    u = user.FreeUserFactory()
     session.add(u)
     session.flush()
     return u

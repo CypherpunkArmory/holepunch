@@ -1,6 +1,11 @@
 from app import db, momblish
 from app.models import Subdomain
-from app.utils.errors import AccessDenied, SubdomainTaken, SubdomainInUse
+from app.utils.errors import (
+    AccessDenied,
+    SubdomainTaken,
+    SubdomainInUse,
+    SubdomainLimitReached,
+)
 
 
 class SubdomainCreationService:
@@ -19,6 +24,13 @@ class SubdomainCreationService:
         return subdomain
 
     def reserve(self, reserve=True):
+        num_subdomains = self.current_user.subdomains.count()
+        if self.current_user.tier == "paid":
+            if num_subdomains >= 5:
+                raise SubdomainLimitReached("")
+        else:
+            raise SubdomainLimitReached("")
+
         subdomain_exist = (
             db.session.query(Subdomain.name)
             .filter_by(name=self.subdomain_name)
