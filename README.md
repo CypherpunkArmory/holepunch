@@ -1,3 +1,4 @@
+[![CircleCI](https://circleci.com/gh/CypherpunkArmory/holepunch.svg?style=svg)](https://circleci.com/gh/CypherpunkArmory/holepunch)
 # Holepunch
 
 Holepunch API
