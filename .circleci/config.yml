@@ -54,22 +54,37 @@ jobs:
           command: |
             ./dbsetup.sh
 
-      - run:
-          name: init db
-          command: |
-            docker-compose exec web flask db upgrade            
-
       - run: 
           name: Run Unit Tests
           command: |
             set -x
-            docker-compose exec web pytest
+            docker-compose exec web pytest --cov-report xml
 
       - run:
           name: Docker-compose down
           command: |
             set -x
             docker-compose down
+      - persist_to_workspace:
+          root: .
+          paths:
+            - coverage.xml 
+
+  upload_coverage:
+    docker:
+      - image: circleci/python:3.7
+    steps:
+      - checkout 
+      - attach_workspace:
+          at: .    
+      - run:
+          name: Install codacy-coverage
+          command: |
+              sudo pip install codacy-coverage
+      - run:
+          name: Upload coverage reports
+          command: |
+              python-codacy-coverage -t ${CODACY_TOKEN}
 
 workflows:
   version: 2
@@ -79,8 +94,7 @@ workflows:
       - build:
           requires:
             - python_lint
-          filters:
-            branches:
-              only:
-                - master
+      - upload_coverage:
+          requires:
+            - build
 

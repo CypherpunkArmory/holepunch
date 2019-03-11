@@ -23,6 +23,7 @@ tags
 htmlcov/
 .coverage
 .coverage.*
+coverage.xml
 .mypy_cache/*
 *,cover
 .vscode
