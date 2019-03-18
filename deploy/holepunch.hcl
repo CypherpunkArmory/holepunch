@@ -16,7 +16,7 @@ job "holepunch" {
       driver = "docker"
 
       config = {
-        image = "cypherpunkarmory/holepunch-production:0.0.28"
+        image = "cypherpunkarmory/holepunch-production:0.0.29"
         entrypoint = ["/bin/bash" , "-l", "-c"]
         command = "rq-dashboard -b 0.0.0.0"
         port_map {
@@ -28,8 +28,8 @@ job "holepunch" {
       }
 
       env {
-        RQ_REDIS_URL = "redis://holepunch-redis.ldw3vp.ng.0001.usw2.cache.amazonaws.com:6379"
-        RQ_DASHBOARD_REDIS_URL = "redis://holepunch-redis.ldw3vp.ng.0001.usw2.cache.amazonaws.com:6379"
+        RQ_REDIS_URL = "redis://holepunch-prod.ldw3vp.0001.usw2.cache.amazonaws.com:6379"
+        RQ_DASHBOARD_REDIS_URL = "redis://holepunch-prod.ldw3vp.0001.usw2.cache.amazonaws.com:6379"
       }
 
       service = {
@@ -63,7 +63,7 @@ job "holepunch" {
       driver = "docker"
 
       config = {
-        image = "cypherpunkarmory/holepunch-production:0.0.28"
+        image = "cypherpunkarmory/holepunch-production:0.0.29"
         entrypoint = ["/bin/bash" , "-l", "-c"]
         command = "python -m flask rq worker"
         labels {
@@ -92,7 +92,7 @@ EOH
         FLASK_ENV = "production"
         CONSUL_HOST = "172.17.0.1"
         CLUSTER_HOST = "172.17.0.1"
-        RQ_REDIS_URL = "redis://holepunch-redis.ldw3vp.ng.0001.usw2.cache.amazonaws.com:6379"
+        RQ_REDIS_URL = "redis://holepunch-prod.ldw3vp.0001.usw2.cache.amazonaws.com:6379"
         SEA_HOST = "172.17.0.1"
         DD_AGENT_HOST = "172.17.0.1"
       }
@@ -113,7 +113,7 @@ EOH
     task "web" {
       driver = "docker"
       config = {
-        image = "cypherpunkarmory/holepunch-production:0.0.28"
+        image = "cypherpunkarmory/holepunch-production:0.0.29"
 
         port_map {
           https = 5000
@@ -166,7 +166,7 @@ EOH
       env {
         FLASK_ENV = "production"
         FLASK_SKIP_DOTENV = 1
-        RQ_REDIS_URL = "redis://holepunch-redis.ldw3vp.ng.0001.usw2.cache.amazonaws.com:6379"
+        RQ_REDIS_URL = "redis://holepunch-prod.ldw3vp.0001.usw2.cache.amazonaws.com:6379"
       }
 
       service = {
