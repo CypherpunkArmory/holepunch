@@ -4,6 +4,7 @@ from flask_jwt_extended import (
     create_refresh_token,
     get_jwt_identity,
     jwt_refresh_token_required,
+    jwt_required,
 )
 from app import db
 from app.services import authentication
@@ -93,6 +94,33 @@ def register_user():
     except IntegrityError:
         return json_api(UnprocessableEntity, ErrorSchema), 422
     return "", 204
+
+
+@auth_blueprint.route("/change_password", methods=["POST"])
+@jwt_required
+def change_password():
+    user = User.query.filter_by(email=get_jwt_identity()).first()
+    old_password = request.json.get("old_password", None)
+    new_password = request.json.get("new_password", None)
+
+    if not (old_password and new_password):
+        return json_api(BadRequest, ErrorSchema), 400
+
+    if not user:
+        return "", 200
+    if not user.confirmed:
+        return "", 200
+    if not user.check_password(old_password):
+        return "", 200
+
+    try:
+        user.set_password(new_password)
+        db.session.add(user)
+        db.session.flush()
+        authentication.send_password_change_email(user.email)
+    except IntegrityError:
+        return json_api(UnprocessableEntity, ErrorSchema), 422
+    return "", 200
 
 
 @auth_blueprint.route("/resend", methods=["POST"])

@@ -1,6 +1,6 @@
 from itsdangerous import URLSafeTimedSerializer
 from flask import current_app, url_for
-from app.jobs.email import send_confirm_email
+from app.jobs.email import send_confirm_email, send_password_change_confirm_email
 
 
 def encode_token(email):
@@ -25,3 +25,7 @@ def send_registration_email(email_address):
     token = encode_token(email_address)
     confirm_url = generate_registration_url(token)
     send_confirm_email.queue(email_address, confirm_url)
+
+
+def send_password_change_email(email_address):
+    send_password_change_confirm_email.queue(email_address)
