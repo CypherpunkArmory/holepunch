@@ -24,12 +24,15 @@ class SubdomainCreationService:
         return subdomain
 
     def reserve(self, reserve=True):
-        num_subdomains = self.current_user.subdomains.count()
-        if self.current_user.tier == "paid":
-            if num_subdomains >= 5:
+        if reserve:
+            num_reserved_subdomains = self.current_user.subdomains.filter_by(
+                reserved=True
+            ).count()
+            if self.current_user.tier == "paid":
+                if num_reserved_subdomains >= 5:
+                    raise SubdomainLimitReached("")
+            else:
                 raise SubdomainLimitReached("")
-        else:
-            raise SubdomainLimitReached("")
 
         subdomain_exist = (
             db.session.query(Subdomain.name)
