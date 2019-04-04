@@ -84,7 +84,7 @@ def register_user():
     if not email and password:
         return json_api(BadRequest, ErrorSchema), 400
 
-    newuser = User(email=email, confirmed=False, tier="free")
+    newuser = User(email=email, confirmed=False, tier="paid")
 
     try:
         newuser.set_password(password)

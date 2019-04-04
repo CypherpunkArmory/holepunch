@@ -1,5 +1,4 @@
 from app.models import Subdomain
-from app import db
 from tests.factories import subdomain, user
 from tests.support.assertions import assert_valid_schema
 from dpath.util import values
