@@ -84,15 +84,23 @@ def register_user():
     if not email and password:
         return json_api(BadRequest, ErrorSchema), 400
 
-    newuser = User(email=email, confirmed=False, tier="paid")
+    reg_user_count = User.query.filter_by(confirmed=True).count()
+    if reg_user_count > 1000:
+        new_user = User(email=email, confirmed=False, tier="waiting")
+    else:
+        new_user = User(email=email, confirmed=False, tier="paid")
 
     try:
-        newuser.set_password(password)
-        db.session.add(newuser)
+        new_user.set_password(password)
+        db.session.add(new_user)
         db.session.flush()
-        authentication.send_registration_email(email)
     except IntegrityError:
         return json_api(UnprocessableEntity, ErrorSchema), 422
+    if reg_user_count > 1000:
+        authentication.send_beta_backlog_email(email)
+    else:
+        authentication.send_registration_email(email)
+
     return "", 204
 
 

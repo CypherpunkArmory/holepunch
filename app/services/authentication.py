@@ -1,6 +1,10 @@
-from itsdangerous import URLSafeTimedSerializer
+from itsdangerous import URLSafeTimedSerializer, BadSignature
 from flask import current_app, url_for
-from app.jobs.email import send_confirm_email, send_password_change_confirm_email
+from app.jobs.email import (
+    send_beta_backlog_notification_email,
+    send_confirm_email,
+    send_password_change_confirm_email,
+)
 
 
 def encode_token(email):
@@ -13,7 +17,7 @@ def decode_token(token, expiration=3600):
     try:
         email = serializer.loads(token, salt="email-confirm-salt", max_age=expiration)
         return email
-    except Exception as e:
+    except BadSignature:
         return False
 
 
@@ -29,3 +33,7 @@ def send_registration_email(email_address):
 
 def send_password_change_email(email_address):
     send_password_change_confirm_email.queue(email_address)
+
+
+def send_beta_backlog_email(email_address):
+    send_beta_backlog_notification_email.queue(email_address)
