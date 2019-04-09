@@ -1,17 +1,22 @@
 from app import db, momblish
 from app.models import Subdomain
-from app.utils.errors import (
-    AccessDenied,
-    SubdomainTaken,
-    SubdomainInUse,
-    SubdomainLimitReached,
-)
+from app.utils.errors import SubdomainTaken, SubdomainInUse, SubdomainLimitReached
+
+subdomain_reserved_limits = {"free": 0, "paid": 5}
 
 
 class SubdomainCreationService:
     def __init__(self, current_user, subdomain_name=""):
         self.current_user = current_user
         self.subdomain_name = subdomain_name
+
+    def over_subdomain_limits(self):
+        num_reserved_subdomains = self.current_user.subdomains.filter_by(
+            reserved=True
+        ).count()
+        if num_reserved_subdomains >= subdomain_reserved_limits[self.current_user.tier]:
+            return True
+        return False
 
     def get_unused_subdomain(self):
         while True:
@@ -25,15 +30,8 @@ class SubdomainCreationService:
 
     def reserve(self, reserve=True):
         if reserve:
-            num_reserved_subdomains = self.current_user.subdomains.filter_by(
-                reserved=True
-            ).count()
-            if self.current_user.tier == "paid":
-                if num_reserved_subdomains >= 5:
-                    raise SubdomainLimitReached("")
-            else:
+            if self.over_subdomain_limits():
                 raise SubdomainLimitReached("")
-
         subdomain_exist = (
             db.session.query(Subdomain.name)
             .filter_by(name=self.subdomain_name)

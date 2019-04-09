@@ -9,7 +9,7 @@ Holepunch API
 
 1. You will need a dockerhub account to run the app.
 2. Create a virtualenv (using pyenv) called "holepunch" based on Python 3.7.0
-3. Run `dbsetup.sh`
+3. Run `hpsetup.sh`
 6. Run the tests  `docker-compose run web pytest`
 
 

@@ -50,9 +50,9 @@ jobs:
           command: dockerize -wait http://localhost:5000 -timeout 1m            
 
       - run: 
-          name: Create databases
+          name: Setup holepunch
           command: |
-            ./dbsetup.sh
+            ./hpsetup.sh
 
       - run: 
           name: Run Unit Tests

@@ -90,7 +90,7 @@ job "ssh-client" {
 
       resources {
         cpu    = 100 # MHz
-        memory = 2000 # MB
+        memory = 100 # MB
 
         network {
           mbits = 1

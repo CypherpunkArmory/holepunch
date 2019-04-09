@@ -66,6 +66,14 @@ class SubdomainError(JsonApiException):
     detail = "Database error when changing subdomains"
 
 
+class TunnelLimitReached(JsonApiException):
+    """Raised when the number of tunnels opened is greater than the limit for their tier"""
+
+    title = "Tunnel Limit Reached"
+    status = "403"
+    detail = "Number of tunnels is greater than the tier will allow"
+
+
 class SubdomainLimitReached(JsonApiException):
     """Raised when the number of subdomains reserved is greater than the limit for their tier"""
 

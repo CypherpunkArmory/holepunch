@@ -7,10 +7,16 @@ from dpath.util import values
 from app import db
 from app.models import Subdomain, Tunnel, User
 from app.services.subdomain import SubdomainCreationService
-from app.utils.errors import AccessDenied, TunnelError, SubdomainInUse
+from app.utils.errors import (
+    AccessDenied,
+    TunnelError,
+    SubdomainInUse,
+    TunnelLimitReached,
+)
 from app.utils.json import dig
 
 nomad_client = nomad.Nomad(host=os.getenv("SEA_HOST", "0.0.0.0"))
+tunnel_limits = {"free": 1, "paid": 2}
 
 
 class TunnelCreationService:
@@ -29,7 +35,8 @@ class TunnelCreationService:
 
     def create(self) -> Tunnel:
         self.check_subdomain_permissions()
-
+        if self.over_tunnel_limit():
+            raise TunnelLimitReached("")
         job_id, ssh_port, ip_address = self.create_tunnel_nomad()
 
         self.subdomain.in_use = True
@@ -61,6 +68,12 @@ class TunnelCreationService:
             self.subdomain = SubdomainCreationService(
                 self.current_user
             ).get_unused_subdomain()
+
+    def over_tunnel_limit(self) -> bool:
+        num_tunnels = self.current_user.tunnels.count()
+        if num_tunnels >= tunnel_limits[self.current_user.tier]:
+            return True
+        return False
 
     def create_tunnel_nomad(self) -> Tuple[str, str]:
         """Create a tunnel by scheduling an SSH container into the Nomad cluster"""

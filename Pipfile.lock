@@ -216,13 +216,6 @@
             ],
             "version": "==4.5.3"
         },
-        "croniter": {
-            "hashes": [
-                "sha256:625949cbd38a0b2325295591940dfa5fa0dfca41d03150ae0284a924e0be10f0",
-                "sha256:66b6a9c6b2d1a85d4af51453b2328be775a173e688b69eb3a96a7ec752ba77a3"
-            ],
-            "version": "==0.3.29"
-        },
         "ddtrace": {
             "hashes": [
                 "sha256:86fa484cedc8b83314908cb1f3fff1e2d08e0550d2a589b18ec6f470f0f9275d"

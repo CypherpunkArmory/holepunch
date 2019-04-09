@@ -4,7 +4,7 @@ from app.services.subdomain import SubdomainCreationService
 
 
 class TestSubdomainCreationService(object):
-    """Email creation service has correct business logic"""
+    """Subdomain creation service has correct business logic"""
 
     def test_create_reserve_subdomain(self, current_free_user, current_user):
         """ Raises an exception when too many reserved subdomains"""
