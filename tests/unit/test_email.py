@@ -1,6 +1,10 @@
 import pytest
 from app.jobs.email import send_confirm_email, send_password_change_confirm_email
-from app.services.authentication import encode_token, generate_registration_url
+from app.services.authentication import (
+    encode_token,
+    generate_registration_url,
+    send_password_reset_confirm_email,
+)
 import requests
 
 
@@ -12,7 +16,7 @@ class TestEmailJob(object):
         r = requests.get("http://mail:8025/api/v1/events", stream=True)
         r.encoding = "ascii"
 
-        token = encode_token(current_user.email)
+        token = encode_token(current_user.email, "email-confirm-salt")
         confirm_url = generate_registration_url(token)
         send_confirm_email(current_user.email, confirm_url)
 
@@ -42,6 +46,22 @@ class TestEmailJob(object):
 
         if r.encoding is None:
             r.encoding = "ascii"
+
+        for line in r.iter_lines(decode_unicode=True):
+            if line and current_user.email in line:
+                r.close()
+                break
+
+    def test_email_reset_password_confirmation(self, client, current_user):
+        """ The reset password email is sent correctly"""
+        r = requests.get("http://mail:8025/api/v1/events", stream=True, timeout=15)
+        r.encoding = "ascii"
+
+        with client as c:
+            res = c.post("/reset_password", json={"email": current_user.email})
+            assert res.status_code == 200
+
+        send_password_reset_confirm_email(current_user.email, "sample-url.com/token")
 
         for line in r.iter_lines(decode_unicode=True):
             if line and current_user.email in line:

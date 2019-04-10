@@ -1,4 +1,4 @@
-from flask import request, jsonify, Blueprint, redirect, current_app
+from flask import request, jsonify, Blueprint, redirect
 from flask_jwt_extended import (
     create_access_token,
     create_refresh_token,
@@ -7,6 +7,7 @@ from flask_jwt_extended import (
     jwt_required,
 )
 from app import db
+from app import json_schema_manager
 from app.services import authentication
 from app.models import User
 from app.serializers import ErrorSchema
@@ -16,7 +17,8 @@ from app.utils.errors import (
     UnprocessableEntity,
     UserNotConfirmed,
 )
-from app.utils.json import json_api
+from app.utils.json import dig, json_api
+from jsonschema import ValidationError
 from sqlalchemy.exc import IntegrityError
 
 auth_blueprint = Blueprint("auth", __name__)
@@ -104,6 +106,43 @@ def register_user():
     return "", 204
 
 
+@auth_blueprint.route("/user/<int:user_id>", methods=["PATCH"])
+@jwt_required
+def update_user(user_id):
+    if not user_id:
+        return json_api(BadRequest, ErrorSchema), 400
+
+    current_user = User.query.filter_by(email=get_jwt_identity()).first()
+    user = User.query.filter_by(id=current_user.id).first_or_404()
+
+    try:
+        json_schema_manager.validate(request.json, "update_user.json")
+        new_password = dig(request.json, "new_password", None)
+
+        if new_password:
+            user.set_password(new_password)
+            db.session.add(user)
+            db.session.flush()
+            authentication.send_password_change_email(user.email)
+        return "", 200
+
+    except ValidationError:
+        return json_api(BadRequest, ErrorSchema), 400
+
+
+@auth_blueprint.route("/reset_password", methods=["POST"])
+def reset_password():
+    try:
+        json_schema_manager.validate(request.json, "email.json")
+        email = dig(request.json, "email", None)
+        user = User.query.filter_by(email=email).first_or_404()
+        authentication.send_password_reset_email(user.email, user.id)
+    except ValidationError:
+        return json_api(BadRequest, ErrorSchema), 401
+
+    return "", 200
+
+
 @auth_blueprint.route("/change_password", methods=["POST"])
 @jwt_required
 def change_password():
@@ -152,7 +191,7 @@ def resend_confirm_email():
 
 @auth_blueprint.route("/confirm/<token>", methods=["GET"])
 def confirm_user(token):
-    email = authentication.decode_token(token)
+    email = authentication.decode_token(token, salt="email-confirm-salt")
     if not email:
         return redirect("https://holepunch.io/bad_token/")
     user = User.query.filter_by(email=email).first_or_404()

@@ -88,4 +88,29 @@ def send_password_change_confirm_email(email_address):
                 </body>
                 </html>
                 """
+
+    email.send(email_address)
+
+
+@Q.job(timeout=60000)
+def send_password_reset_confirm_email(email_address, token_url):
+    email = Email()
+    email.subject = "You've successfully changed your Holepunch password"
+    email.body_text = "Click this link to reset your password: " + token_url
+    email.body_html = f"""
+                    <html>
+                    <head></head>
+                    <body>
+                        <h1>
+                            Holepunch Password Reset Request
+                        </h1>
+                        <p>You've requested that the password for your Holepunch account be reset.</p>
+                        <p>Visit <a href="{token_url}">{token_url}</a> to register your account.</p>
+                        <p>If you didn't make this change, please let us know at support@holepunch.io</p> 
+                        <p>Thanks!</p>
+                        <p> - The Holepunch Team</p>
+                    </body>
+                    </html>
+                    """
+
     email.send(email_address)
