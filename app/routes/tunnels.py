@@ -11,7 +11,13 @@ from app import json_schema_manager
 from app.models import Tunnel, User, Subdomain
 from app.serializers import ErrorSchema, TunnelSchema
 from app.services.tunnel import TunnelCreationService, TunnelDeletionService
-from app.utils.errors import BadRequest, NotFoundError, AccessDenied, SubdomainInUse
+from app.utils.errors import (
+    BadRequest,
+    NotFoundError,
+    AccessDenied,
+    SubdomainInUse,
+    SubdomainLimitReached,
+)
 from app.utils.json import dig, json_api
 
 tunnel_blueprint = Blueprint("tunnel", __name__)
@@ -46,9 +52,12 @@ def start_tunnel() -> Response:
         ssh_key = dig(request.json, "data/attributes/sshKey")
 
         current_user = User.query.filter_by(email=get_jwt_identity()).first()
-        tunnel_info = TunnelCreationService(
-            current_user, subdomain_id, port_type, ssh_key
-        ).create()
+        try:
+            tunnel_info = TunnelCreationService(
+                current_user, subdomain_id, port_type, ssh_key
+            ).create()
+        except SubdomainLimitReached:
+            return json_api(SubdomainLimitReached, ErrorSchema), 403
 
         return json_api(tunnel_info, TunnelSchema), 201
 
