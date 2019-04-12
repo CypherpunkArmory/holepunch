@@ -116,11 +116,11 @@ def update_user(user_id):
     user = User.query.filter_by(id=current_user.id).first_or_404()
 
     try:
-        json_schema_manager.validate(request.json, "update_user.json")
-        new_password = dig(request.json, "new_password", None)
+        json_schema_manager.validate(request.json, "user.json")
+        password = dig(request.json, "data/attributes/password")
 
-        if new_password:
-            user.set_password(new_password)
+        if password:
+            user.set_password(password)
             db.session.add(user)
             db.session.flush()
             authentication.send_password_change_email(user.email)
@@ -140,33 +140,6 @@ def reset_password():
     except ValidationError:
         return json_api(BadRequest, ErrorSchema), 401
 
-    return "", 200
-
-
-@auth_blueprint.route("/change_password", methods=["POST"])
-@jwt_required
-def change_password():
-    user = User.query.filter_by(email=get_jwt_identity()).first()
-    old_password = request.json.get("old_password", None)
-    new_password = request.json.get("new_password", None)
-
-    if not (old_password and new_password):
-        return json_api(BadRequest, ErrorSchema), 400
-
-    if not user:
-        return "", 200
-    if not user.confirmed:
-        return "", 200
-    if not user.check_password(old_password):
-        return "", 200
-
-    try:
-        user.set_password(new_password)
-        db.session.add(user)
-        db.session.flush()
-        authentication.send_password_change_email(user.email)
-    except IntegrityError:
-        return json_api(UnprocessableEntity, ErrorSchema), 422
     return "", 200
 
 

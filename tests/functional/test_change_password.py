@@ -4,39 +4,32 @@ from app.models import User
 class TestChangePassword(object):
     """A User can change password"""
 
+    new_password = "abcdef"
+
     def test_change_password_with_correct_credentials(self, client, current_user):
-        """Post to /change_password url with correct credentials succeeds"""
+        """Patch to /user/<user_id> url succeeds and password changes successfully"""
 
-        assert current_user.check_password("123123") == True
-        res = client.post(
-            "/change_password",
-            json={"old_password": "123123", "new_password": "abc123"},
+        update_user_url = "/user/" + str(current_user.id)
+        res = client.patch(
+            update_user_url,
+            json={
+                "data": {"type": "user", "attributes": {"password": self.new_password}}
+            },
         )
 
         user = User.query.filter_by(email=current_user.email).first()
-
         assert res.status_code == 200
-        assert user.check_password("abc123") == True
-
-    def test_change_password_with_incorrect_password(self, client, current_user):
-        """Post to /change_password url with incorrect password fails"""
-
-        res = client.post(
-            "/change_password",
-            json={"old_password": "definitely-wrong", "new_password": "abc123"},
-        )
-        user = User.query.filter_by(email=current_user.email).first()
-        assert res.status_code == 200
-        assert user.check_password("abc123") == False
+        assert user.check_password(self.new_password) == True
 
     def test_change_password_and_login_with_old_password(self, client, current_user):
-        """Post to /change_password url and logging in with old password fails"""
-
-        res = client.post(
-            "/change_password",
-            json={"old_password": "123123", "new_password": "abc123"},
+        """Patch to /user/<user_id> url to change to new password, then logging in with old password fails"""
+        update_user_url = "/user/" + str(current_user.id)
+        res = client.patch(
+            update_user_url,
+            json={
+                "data": {"type": "user", "attributes": {"password": self.new_password}}
+            },
         )
-
         assert res.status_code == 200
 
         res = client.post(

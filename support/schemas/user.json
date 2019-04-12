@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "$id": "user",
+    "definitions": {
+        "user": {
+            "allOf": [
+                {
+                    "$ref": "json-api.json#/definitions/post_data"
+                },
+                {
+                    "properties": {
+                        "attributes": {
+                            "properties": {
+                                "email": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "type": "object",
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/definitions/user"
+        }
+    }
+}
