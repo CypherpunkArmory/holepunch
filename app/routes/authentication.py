@@ -130,6 +130,19 @@ def update_user(user_id):
         return json_api(BadRequest, ErrorSchema), 400
 
 
+@auth_blueprint.route("/user/<int:user_id>", methods=["DELETE"])
+@jwt_required
+def delete_user(user_id):
+    if not user_id:
+        return json_api(BadRequest, ErrorSchema), 400
+
+    user = User.query.filter_by(email=get_jwt_identity(), id=user_id).first_or_404()
+
+    db.session.delete(user)
+    db.session.commit()
+    return "", 204
+
+
 @auth_blueprint.route("/reset_password", methods=["POST"])
 def reset_password():
     try:
