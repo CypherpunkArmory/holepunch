@@ -1,28 +1,21 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "user",
+  "$id": "user_create",
   "definitions": {
     "user": {
       "allOf": [
         {
-          "$ref": "json-api.json#/definitions/data"
+          "$ref": "json-api.json#/definitions/post_data"
         },
         {
           "properties": {
             "attributes": {
-              "required": [
-                "email",
-                "confirmed",
-                "tier"
-              ],
+              "required": ["email", "password"],
               "properties": {
                 "email": {
                   "type": "string"
                 },
-                "confirmed": {
-                  "type": "boolean"
-                },
-                "tier": {
+                "password": {
                   "type": "string"
                 }
               }
@@ -33,8 +26,12 @@
     }
   },
   "type": "object",
-  "required": ["data"],
+  "required": [
+    "data"
+  ],
   "properties": {
-    "data": { "$ref": "#/definitions/user" }
+    "data": {
+      "$ref": "#/definitions/user"
+    }
   }
 }

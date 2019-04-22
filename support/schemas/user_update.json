@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "user_update",
+  "definitions": {
+    "user": {
+      "allOf": [
+        {
+          "$ref": "json-api.json#/definitions/post_data"
+        },
+        {
+          "properties": {
+            "attributes": {
+                "anyOf": [
+                    { "required": ["old_password", "new_password"] },
+                    { "required": ["old_email", "new_email"] },
+                    { "required": [] }
+                ],
+              "properties": {
+                "old_email": {
+                  "type": "string"
+                },
+                "new_email": {
+                  "type": "string"
+                },
+                "old_password": {
+                  "type": "string"
+                },
+                "new_password": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "required": [
+    "data"
+  ],
+  "properties": {
+    "data": {
+      "$ref": "#/definitions/user"
+    }
+  }
+}

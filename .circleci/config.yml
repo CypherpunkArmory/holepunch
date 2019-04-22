@@ -33,7 +33,7 @@ jobs:
           environment:
             DOCKERIZE_VERSION: v0.3.0
 
-      - run: docker build -t holepunch --build-arg APP_NAME=holepunch . 
+      - run: docker build -t holepunch --build-arg APP_NAME=holepunch .
 
       - run:
           name: Start container
@@ -47,14 +47,14 @@ jobs:
 
       - run:
           name: Wait for web
-          command: dockerize -wait http://localhost:5000 -timeout 1m            
+          command: dockerize -wait http://localhost:5000 -timeout 1m
 
-      - run: 
+      - run:
           name: Setup holepunch
           command: |
             ./hpsetup.sh
 
-      - run: 
+      - run:
           name: Run Unit Tests
           command: |
             set -x
@@ -65,18 +65,19 @@ jobs:
           command: |
             set -x
             docker-compose down
+
       - persist_to_workspace:
           root: .
           paths:
-            - coverage.xml 
+            - coverage.xml
 
   upload_coverage:
     docker:
       - image: circleci/python:3.7
     steps:
-      - checkout 
+      - checkout
       - attach_workspace:
-          at: .    
+          at: .
       - run:
           name: Install codacy-coverage
           command: |
@@ -90,7 +91,7 @@ workflows:
   version: 2
   build_and_test:
     jobs:
-      - python_lint   
+      - python_lint
       - build:
           requires:
             - python_lint

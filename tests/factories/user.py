@@ -27,5 +27,11 @@ class FreeUserFactory(UserFactory):
 
 
 @register
+class WaitingUserFactory(UserFactory):
+    confirmed = False
+    tier = "waiting"
+
+
+@register
 class UnconfirmedUserFactory(UserFactory):
     confirmed = False

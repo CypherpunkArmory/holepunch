@@ -1,6 +1,7 @@
 import pytest
 
 from app.services.tunnel import TunnelCreationService
+from app.utils.errors import TunnelLimitReached
 
 
 class TestTunnelCreationService(object):
@@ -8,7 +9,7 @@ class TestTunnelCreationService(object):
 
     def test_create_tunnel(self, current_free_user, current_user):
         """ Raises an exception when too many open tunnels"""
-        with pytest.raises(Exception):
+        with pytest.raises(TunnelLimitReached):
             TunnelCreationService(
                 current_user=current_free_user,
                 subdomain_id=None,
@@ -31,7 +32,7 @@ class TestTunnelCreationService(object):
                 ssh_key="",
             ).create()
 
-        with pytest.raises(Exception):
+        with pytest.raises(TunnelLimitReached):
             TunnelCreationService(
                 current_user=current_user,
                 subdomain_id=None,

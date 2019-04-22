@@ -36,6 +36,18 @@ class SubdomainSchema(Schema):
     reserved = fields.Boolean()
 
 
+class UserSchema(Schema):
+    class Meta:
+        type_ = "user"
+        strict = True
+        inflect = drinkingCamel
+
+    id = fields.Str()
+    email = fields.Str()
+    tier = fields.Str()
+    confirmed = fields.Boolean()
+
+
 class ErrorSchema(Schema):
     class Meta:
         type_ = "error"
@@ -46,3 +58,5 @@ class ErrorSchema(Schema):
     status = fields.Str()
     title = fields.Str()
     detail = fields.Str()
+    source = fields.Str()
+    code = fields.Str()

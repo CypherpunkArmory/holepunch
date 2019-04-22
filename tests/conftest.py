@@ -1,9 +1,8 @@
 import pytest
-
 from app import create_app
 from app import db as _db
 from sqlalchemy import event
-from tests.support.client import TestClient, TestClientSession
+from tests.support.client import TestClient
 from tests.factories import user
 
 
@@ -59,6 +58,11 @@ def client(app, current_user):
 
 
 @pytest.fixture
+def unauthenticated_client(app):
+    return app.test_client()
+
+
+@pytest.fixture
 def free_client(app, current_free_user):
     app.test_client_class = TestClient
     return app.test_client(user=current_free_user)
@@ -66,8 +70,8 @@ def free_client(app, current_free_user):
 
 @pytest.fixture
 def refresh_client(app, current_user):
-    app.test_client_class = TestClientSession
-    return app.test_client(user=current_user)
+    app.test_client_class = TestClient
+    return app.test_client(user=current_user, refresh=True)
 
 
 @pytest.fixture

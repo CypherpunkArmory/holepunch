@@ -7,7 +7,7 @@ class JsonApiException(Exception):
 
     def __init__(
         self,
-        detail,
+        detail=None,
         source=None,
         title=None,
         status=None,
@@ -21,9 +21,10 @@ class JsonApiException(Exception):
         :param dict source: the source of the error
         :param str detail: the detail of the error
         """
-        self.detail = detail
-        self.source = source
+
+        self.detail = detail or self.__class__.detail
         self.code = code
+        self.source = source
         self.id = id_
         self.links = links or {}
         self.meta = meta or {}
@@ -59,11 +60,19 @@ class TunnelError(JsonApiException):
 
 
 class SubdomainError(JsonApiException):
-    """Raised when there is an error creating/deleting a tunnel"""
+    """Raised when there is an error creating/deleting a subdomain"""
 
     title = "Subdomain Error"
     status = "500"
     detail = "Database error when changing subdomains"
+
+
+class UserError(JsonApiException):
+    """Raised when there is an error creating/deleting a user"""
+
+    title = "User Error"
+    stats = "500"
+    detail = "Database error when updating user"
 
 
 class TunnelLimitReached(JsonApiException):

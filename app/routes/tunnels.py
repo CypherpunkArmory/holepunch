@@ -94,7 +94,7 @@ def stop_tunnel(tunnel_id) -> Response:
 @jwt_required
 def get_tunnel(tunnel_id) -> Response:
     """
-    Stop a currently running tunnel
+    Retrieve Tunnel Resource
     """
     if not tunnel_id:
         return json_api(BadRequest, ErrorSchema), 400

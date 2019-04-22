@@ -60,11 +60,16 @@ def create_app(env: str = "development"):
     from app.routes.tunnels import tunnel_blueprint
     from app.routes.subdomains import subdomain_blueprint
     from app.routes.authentication import auth_blueprint
+    from app.routes.account import account_blueprint
+    from app.routes.root import root_blueprint
+
     from querystring_parser.parser import parse as qs_parse
 
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(tunnel_blueprint)
     app.register_blueprint(subdomain_blueprint)
+    app.register_blueprint(account_blueprint)
+    app.register_blueprint(root_blueprint)
 
     @app.shell_context_processor
     def ctx():
