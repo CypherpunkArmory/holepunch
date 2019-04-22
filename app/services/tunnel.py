@@ -15,7 +15,8 @@ from app.utils.errors import (
 )
 from app.utils.json import dig
 
-nomad_client = nomad.Nomad(host=os.getenv("SEA_HOST", "0.0.0.0"))
+from app.utils.dns import discover_service
+
 tunnel_limits = {"free": 1, "paid": 2}
 
 
@@ -32,6 +33,11 @@ class TunnelCreationService:
         self.port_type = port_type
         self.ssh_key = ssh_key
         self.current_user = current_user
+        # We need to do this each time so each if a nomad service goes down it doesnt affect web api
+        if os.getenv("FLASK_ENV") == "production":
+            self.nomad_client = nomad.Nomad(discover_service("nomad").url)
+        else:
+            self.nomad_client = nomad.Nomad(host=os.getenv("SEA_HOST", "0.0.0.0"))
 
     def create(self) -> Tunnel:
         self.check_subdomain_permissions()
@@ -84,7 +90,7 @@ class TunnelCreationService:
             "base_url": os.getenv("BASE_SERVICE_URL", ".local"),
         }
 
-        result = nomad_client.job.dispatch_job("ssh-client", meta=meta)
+        result = self.nomad_client.job.dispatch_job("ssh-client", meta=meta)
         job_id = cast(str, result["DispatchedJobID"])
 
         # FIXME: nasty blocking loops should be asynced or something
@@ -93,16 +99,18 @@ class TunnelCreationService:
         trys = 0
         while status != "running":
             trys += 1
-            status = nomad_client.job[result["DispatchedJobID"]]["Status"]
+            status = self.nomad_client.job[result["DispatchedJobID"]]["Status"]
             if trys > 1000:
                 raise TunnelError(detail="The tunnel failed to start.")
 
-        job_info = nomad_client.job.get_allocations(job_id)
+        job_info = self.nomad_client.job.get_allocations(job_id)
 
-        allocation_info = nomad_client.allocation.get_allocation(dig(job_info, "0/ID"))
+        allocation_info = self.nomad_client.allocation.get_allocation(
+            dig(job_info, "0/ID")
+        )
 
         allocation_node = values(allocation_info, "NodeID")
-        nodes = nomad_client.nodes.get_nodes()
+        nodes = self.nomad_client.nodes.get_nodes()
 
         ip_address = next(x["Address"] for x in nodes if x["ID"] in allocation_node)
         allocated_ports = values(allocation_info, "Resources/Networks/0/DynamicPorts/*")
@@ -116,6 +124,10 @@ class TunnelDeletionService:
         self.current_user = current_user
         self.tunnel = tunnel
         self.subdomain = tunnel.subdomain
+        if os.getenv("FLASK_ENV") == "production":
+            self.nomad_client = nomad.Nomad(discover_service("nomad").url)
+        else:
+            self.nomad_client = nomad.Nomad(host=os.getenv("SEA_HOST", "0.0.0.0"))
 
     def delete(self):
         self.del_tunnel_nomad()
@@ -131,4 +143,4 @@ class TunnelDeletionService:
             db.session.flush()
 
     def del_tunnel_nomad(self):
-        nomad_client.job.deregister_job(self.tunnel.job_id)
+        self.nomad_client.job.deregister_job(self.tunnel.job_id)

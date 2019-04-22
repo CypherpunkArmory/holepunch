@@ -39,7 +39,7 @@ jobs:
           name: Start container
           command: |
             set -x
-            docker-compose up --build -d
+            docker-compose up -d
 
       - run:
           name: Wait for db

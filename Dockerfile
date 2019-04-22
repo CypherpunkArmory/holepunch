@@ -1,8 +1,7 @@
-FROM python:3.7-slim
+FROM python:3.7
 MAINTAINER cypherpunkarmory
 
 RUN pip install pipenv
-
 ARG APP_NAME
 ENV APP_HOME /$APP_NAME
 RUN mkdir $APP_HOME

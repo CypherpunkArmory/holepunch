@@ -93,6 +93,7 @@ pytest-sugar = "*"
 flask-cors = "*"
 pytest-cov = "*"
 fakeredis = "*"
+dnspython = "*"
 
 [requires]
 python_version = "3.7"

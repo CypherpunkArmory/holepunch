@@ -1,6 +1,7 @@
 import os
 import traceback
 
+
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, got_request_exception
 from flask_jwt_extended import JWTManager
@@ -14,8 +15,10 @@ from flask_cors import CORS
 from flask_rq2 import RQ
 import rollbar
 import rollbar.contrib.flask
+import consul
 
-from app.utils.json import JSONSchemaManager
+from app.utils.json import JSONSchemaManager, dig
+from app.utils.dns import discover_service
 
 # this is kinda tacky - we should look to see if there's a environment autoloader
 if os.getenv("FLASK_ENV") == "production":
@@ -26,13 +29,7 @@ if os.getenv("FLASK_ENV") == "production":
 
 
 def load_corpus():
-    if os.path.exists("/tmp/corpus.json"):
-        mombler = Momblish(corpus=Corpus.load("/tmp/corpus.json"))
-    else:
-        corpus = CorpusAnalyzer(open("support/english", "r")).corpus
-        mombler = Momblish(corpus)
-        mombler.corpus.save("/tmp/corpus.json")
-
+    mombler = Momblish(corpus=Corpus.load("support/corpus.json"))
     return mombler
 
 
