@@ -39,6 +39,7 @@ class TestClient(FlaskClient):
                 {
                     "Authorization": f"Bearer {self._token}",
                     "Content-Type": "application/vnd.api+json",
+                    "Api-Version": os.getenv("MIN_CALVER"),
                 }
             )
 

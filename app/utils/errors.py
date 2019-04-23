@@ -91,6 +91,24 @@ class SubdomainLimitReached(JsonApiException):
     detail = "Number of subdomains is greater than the tier will allow"
 
 
+class MalformedAPIHeader(JsonApiException):
+    """MalformedAPIHeader error"""
+
+    title = "Malformed api header"
+    detail = (
+        "`api_version` header is in the wrong format. Must be year.month.day.revision"
+    )
+    status = "403"
+
+
+class OldAPIVersion(JsonApiException):
+    """OldAPIVersion error"""
+
+    title = "Upgrade your client"
+    detail = "The client being used is incompatiable with the api"
+    status = "400"
+
+
 class NotFoundError(JsonApiException):
     """Raised when there is an error creating/deleting a tunnel"""
 

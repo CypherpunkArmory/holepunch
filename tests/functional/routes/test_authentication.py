@@ -2,6 +2,8 @@ import os
 
 import jwt
 from tests.factories import user
+from werkzeug.datastructures import Headers
+from flask.testing import FlaskClient
 
 
 class TestAuthentication(object):
@@ -59,3 +61,31 @@ class TestAuthentication(object):
         res = refresh_client.put("/session")
 
         assert res.status_code == 200
+
+    def test_login_with_old_calver(self, app, current_user):
+        """Login should fail with an old api client"""
+        app.test_client_class = FlaskClient
+        client = app.test_client()
+        api_headers = Headers(
+            {"Content-Type": "application/vnd.api+json", "Api-Version": "2000.1.1.0"}
+        )
+        res = client.post(
+            "/login",
+            headers=api_headers,
+            json={"email": current_user.email, "password": "123123"},
+        )
+        assert res.status_code == 400
+
+    def test_login_with_malformed_calver(self, app, current_user):
+        """Login should fail with a malformed api version"""
+        app.test_client_class = FlaskClient
+        client = app.test_client()
+        api_headers = Headers(
+            {"Content-Type": "application/vnd.api+json", "Api-Version": "0.0.0.a"}
+        )
+        res = client.post(
+            "/login",
+            headers=api_headers,
+            json={"email": current_user.email, "password": "123123"},
+        )
+        assert res.status_code == 403

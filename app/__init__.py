@@ -1,7 +1,7 @@
 import os
 import traceback
 
-
+import consul
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, got_request_exception
 from flask_jwt_extended import JWTManager
@@ -15,9 +15,9 @@ from flask_cors import CORS
 from flask_rq2 import RQ
 import rollbar
 import rollbar.contrib.flask
-import consul
+from packaging import version
 
-from app.utils.json import JSONSchemaManager, dig
+from app.utils.json import JSONSchemaManager, json_api, dig
 from app.utils.dns import discover_service
 
 # this is kinda tacky - we should look to see if there's a environment autoloader
@@ -68,6 +68,10 @@ def create_app(env: str = "development"):
     app.register_blueprint(account_blueprint)
     app.register_blueprint(root_blueprint)
 
+    from app.serializers import ErrorSchema
+    from app.utils.errors import OldAPIVersion, MalformedAPIHeader
+    import re
+
     @app.shell_context_processor
     def ctx():
         return {"app": app, "db": db}
@@ -102,6 +106,19 @@ def create_app(env: str = "development"):
             request.query_params = qs_parse(request.query_string)
         else:
             request.query_params = dict()
+
+    def check_version(date):
+        return version.parse(date) >= version.parse(os.getenv("MIN_CALVER"))
+
+    @app.before_request
+    def check_api_version():
+        if "Api-Version" in request.headers:
+            if not re.match("^\d+\.\d+\.\d+\.\d+$", request.headers["Api-Version"]):
+                return json_api(MalformedAPIHeader, ErrorSchema), 403
+            if check_version(request.headers["Api-Version"]):
+                return
+            else:
+                return json_api(OldAPIVersion, ErrorSchema), 400
 
     @app.after_request
     def session_commit(response):
