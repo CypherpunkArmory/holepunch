@@ -5,6 +5,7 @@ from app.services import authentication
 import re
 import jwt
 import os
+import requests
 
 
 class TestAccount(object):
@@ -188,3 +189,56 @@ class TestAccount(object):
         assert res.status_code == 403
         assert user.check_password("abc123") is False
         password_changed_email.assert_not_called()
+
+    @mock.patch("app.services.user.send_email_change_confirm_email.queue")
+    def test_change_email_with_correct_credentials(
+        self, email_changed_email, client, current_user
+    ):
+        """PATCH to /account url with correct email succeeds and old email gets confirmation"""
+        old_email = current_user.email
+        new_email = "fresh-email@gmail.com"
+
+        r = requests.get("http://mail:8025/api/v1/events", stream=True)
+        r.encoding = "ascii"
+
+        res = client.patch(
+            "/account",
+            json={"data": {"type": "user", "attributes": {"email": new_email}}},
+        )
+
+        old_email_user = User.query.filter_by(email=old_email).first()
+        new_email_user = User.query.filter_by(email=new_email).first()
+        assert res.status_code == 200
+        assert old_email_user is None
+        assert new_email_user is not None
+
+        email_changed_email.assert_called_once()
+
+        for line in r.iter_lines(decode_unicode=True):
+            if line and old_email in line:
+                r.close()
+                break
+
+    @mock.patch("app.services.user.send_email_change_confirm_email.queue")
+    def test_change_email_to_existing_email(
+        self, email_changed_email, client, current_user, session
+    ):
+        """PATCH to /account url with an already existing email fails"""
+        other_user = UnconfirmedUserFactory(email="other_guy@gmail.com")
+        session.add(other_user)
+        session.flush()
+
+        old_email = current_user.email
+
+        res = client.patch(
+            "/account",
+            json={"data": {"type": "user", "attributes": {"email": other_user.email}}},
+        )
+
+        old_email_user = User.query.filter_by(email=old_email).first()
+        other_email_user = User.query.filter_by(email=other_user.email).first()
+        assert res.status_code == 422
+        assert old_email_user is not None
+        assert other_email_user is not None
+
+        email_changed_email.assert_not_called()

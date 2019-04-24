@@ -12,6 +12,7 @@ from app.jobs.email import (
     send_confirm_email,
     send_password_change_confirm_email,
     send_password_reset_confirm_email,
+    send_email_change_confirm_email,
 )
 import app.services.authentication as authentication
 
@@ -44,6 +45,12 @@ class UserNotificationService:
             return
 
         send_password_change_confirm_email.queue(self.user.email)
+
+    def email_changed_email(self, previous_email):
+        if not self.user.confirmed:
+            return
+
+        send_email_change_confirm_email.queue(previous_email)
 
     def registration_email(self):
         send_confirm_email.queue(
@@ -102,8 +109,9 @@ class UserUpdateService:
         self.user = user
         self.scopes = attrs.pop("scopes")
         authentication.validate_scope_permissions("update:user", self.scopes, attrs)
-        self.new_password = attrs.pop("new_password")
+        self.new_password = attrs.pop("new_password", None)
         self.old_password = attrs.pop("old_password", None)
+        self.email = attrs.pop("email", None)
         self.attrs = attrs
 
     def update(self) -> User:
@@ -120,10 +128,20 @@ class UserUpdateService:
                 raise AccessDenied("Wrong password")
             self.user.set_password(self.new_password)
 
+        elif self.email:
+            if User.query.filter_by(email=self.email).first() is not None:
+                raise UserError(detail="Email already in use")
+            self.user.email = self.email
+
         db.session.add(self.user)
         db.session.flush()
 
         return self.user
+
+
+@event.listens_for(User.email, "set")
+def user_notify_email_change(user, old_value, *_):
+    UserNotificationService(user).email_changed_email(old_value)
 
 
 @event.listens_for(User.password_hash, "set")
