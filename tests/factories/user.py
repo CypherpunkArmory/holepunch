@@ -1,6 +1,7 @@
 from factory import Factory, post_generation, Faker
 from faker import Faker as RealFaker
 from pytest_factoryboy import register
+import uuid
 
 from app.models import User
 
@@ -19,6 +20,10 @@ class UserFactory(Factory):
     @post_generation
     def set_password(user, create, extracted, **kwargs):
         user.set_password("123123")
+
+    @post_generation
+    def set_uuid(user, create, extracted, **kwargs):
+        user.uuid = str(uuid.uuid1())
 
 
 @register

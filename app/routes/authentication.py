@@ -34,8 +34,8 @@ def login():
         if not user.check_password(password):
             return json_api(AccessDenied, ErrorSchema), 403
 
-        access_token = create_access_token(identity=email)
-        refresh_token = create_refresh_token(identity=email)
+        access_token = create_access_token(identity=user.uuid)
+        refresh_token = create_refresh_token(identity=user.uuid)
         ret = {
             "access_token": access_token,
             "token_type": "Bearer",
@@ -51,9 +51,9 @@ def login():
 @auth_blueprint.route("/session", methods=["PUT"])
 @jwt_refresh_token_required
 def session():
-    current_user = get_jwt_identity()
+    uuid = get_jwt_identity()
     ret = {
-        "access_token": create_access_token(identity=current_user),
+        "access_token": create_access_token(identity=uuid),
         "token_type": "Bearer",
         "expires-in": 3600,
     }

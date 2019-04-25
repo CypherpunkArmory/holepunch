@@ -29,7 +29,7 @@ def tunnel_index() -> Response:
     """
     Fetch index of a users current tunnels
     """
-    tunnels = User.query.filter_by(email=get_jwt_identity()).first().tunnels
+    tunnels = User.query.filter_by(uuid=get_jwt_identity()).first_or_404().tunnels
 
     name = dig(request.query_params, "filter/subdomain/name")
     if name:
@@ -51,7 +51,7 @@ def start_tunnel() -> Response:
         port_type = dig(request.json, "data/attributes/port")
         ssh_key = dig(request.json, "data/attributes/sshKey")
 
-        current_user = User.query.filter_by(email=get_jwt_identity()).first()
+        current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
         try:
             tunnel_info = TunnelCreationService(
                 current_user, subdomain_id, port_type, ssh_key
@@ -80,7 +80,7 @@ def stop_tunnel(tunnel_id) -> Response:
     if not tunnel_id:
         return json_api(BadRequest, ErrorSchema), 400
 
-    current_user = User.query.filter_by(email=get_jwt_identity()).first()
+    current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
     tunnel = Tunnel.query.filter_by(user=current_user, id=tunnel_id).first_or_404()
 
     try:
@@ -99,7 +99,7 @@ def get_tunnel(tunnel_id) -> Response:
     if not tunnel_id:
         return json_api(BadRequest, ErrorSchema), 400
 
-    current_user = User.query.filter_by(email=get_jwt_identity()).first()
+    current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
     tunnel = Tunnel.query.filter_by(user=current_user, id=tunnel_id).first_or_404()
 
     try:

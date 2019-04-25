@@ -101,7 +101,7 @@ class TestAccount(object):
         session.add(user)
         session.flush()
 
-        token = authentication.encode_token("forgetful@gmail.com", "email-confirm-salt")
+        token = authentication.encode_token(user.uuid, "email-confirm-salt")
         res = unauthenticated_client.get(f"/account/confirm/{token}")
 
         assert res.status_code == 302
@@ -161,7 +161,7 @@ class TestAccount(object):
             },
         )
 
-        user = User.query.filter_by(email=current_user.email).first()
+        user = User.query.filter_by(email=current_user.email).first_or_404()
         assert res.status_code == 200
         assert user.check_password("abc123") is True
         password_changed_email.assert_called_once()
@@ -185,7 +185,7 @@ class TestAccount(object):
             },
         )
 
-        user = User.query.filter_by(email=current_user.email).first()
+        user = User.query.filter_by(email=current_user.email).first_or_404()
         assert res.status_code == 403
         assert user.check_password("abc123") is False
         password_changed_email.assert_not_called()
@@ -242,3 +242,31 @@ class TestAccount(object):
         assert other_email_user is not None
 
         email_changed_email.assert_not_called()
+
+    def test_revoke_tokens(self, current_user, client, unauthenticated_client):
+        """Delete to /account/token url returns a 204 on success and bearer token no longer works"""
+        res = unauthenticated_client.post(
+            "/login", json={"email": current_user.email, "password": "123123"}
+        )
+
+        json_response = res.get_json()
+
+        old_uuid = jwt.decode(
+            json_response["access_token"], os.getenv("JWT_SECRET_KEY")
+        )["identity"]
+        res2 = client.delete("/account/token")
+        assert res2.status_code == 204
+
+        res3 = client.get("/subdomains")
+        assert res3.status_code == 404
+
+        res4 = unauthenticated_client.post(
+            "/login", json={"email": current_user.email, "password": "123123"}
+        )
+
+        json_response = res4.get_json()
+
+        new_uuid = jwt.decode(
+            json_response["access_token"], os.getenv("JWT_SECRET_KEY")
+        )["identity"]
+        assert new_uuid != old_uuid

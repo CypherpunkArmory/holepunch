@@ -6,6 +6,7 @@ from sqlalchemy import event
 from flask_jwt_extended import create_access_token
 from app.services.authentication import encode_token
 from flask import url_for
+import uuid
 
 from app.jobs.email import (
     send_beta_backlog_notification_email,
@@ -58,16 +59,16 @@ class UserNotificationService:
         )
 
     def generate_confirmation_url(self, salt):
-        token = encode_token(self.user.email, salt)
+        token = encode_token(self.user.uuid, salt)
         return url_for("account.confirm", token=token, _external=True)
 
 
 class UserTokenService:
-    def __init__(self, email):
-        self.email = email
+    def __init__(self, uuid):
+        self.uuid = uuid
 
     def confirm(self):
-        user = User.query.filter_by(email=self.email).first()
+        user = User.query.filter_by(uuid=self.uuid).first_or_404()
         user.confirmed = True
         db.session.add(user)
         db.session.flush()
@@ -75,8 +76,7 @@ class UserTokenService:
         return True
 
     def issue_task_token(self, task):
-        User.query.filter_by(email=self.email).first()
-        return create_access_token(identity=self.email, user_claims={"scopes": [task]})
+        return create_access_token(identity=self.uuid, user_claims={"scopes": [task]})
 
 
 class UserCreationService:
@@ -87,7 +87,10 @@ class UserCreationService:
     def create(self) -> User:
         try:
             new_user = User(
-                email=self.email, confirmed=False, tier=self.get_user_tier()
+                email=self.email,
+                confirmed=False,
+                tier=self.get_user_tier(),
+                uuid=str(uuid.uuid4()),
             )
             new_user.set_password(self.password)
             db.session.add(new_user)

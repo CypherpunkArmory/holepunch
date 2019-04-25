@@ -1,7 +1,6 @@
 import os
 import traceback
 
-import consul
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, got_request_exception
 from flask_jwt_extended import JWTManager
@@ -10,15 +9,13 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import DatabaseError
 from momblish import Momblish
 from momblish.corpus import Corpus
-from momblish.corpus_analyzer import CorpusAnalyzer
 from flask_cors import CORS
 from flask_rq2 import RQ
 import rollbar
 import rollbar.contrib.flask
 from packaging import version
 
-from app.utils.json import JSONSchemaManager, json_api, dig
-from app.utils.dns import discover_service
+from app.utils.json import JSONSchemaManager, json_api
 
 # this is kinda tacky - we should look to see if there's a environment autoloader
 if os.getenv("FLASK_ENV") == "production":

@@ -5,16 +5,15 @@ from flask_jwt_extended import get_jwt_claims
 from app.utils.errors import AccessDenied
 
 
-def encode_token(email, salt="default-salt"):
+def encode_token(uuid, salt="default-salt"):
     serializer = URLSafeTimedSerializer(current_app.config["JWT_SECRET_KEY"])
-    return serializer.dumps(email, salt)
+    return serializer.dumps(uuid, salt)
 
 
 def decode_token(token, salt="default-salt", expiration=3600):
     serializer = URLSafeTimedSerializer(current_app.config["JWT_SECRET_KEY"])
     try:
-        email = serializer.loads(token, salt=salt, max_age=expiration)
-        return email
+        return serializer.loads(token, salt=salt, max_age=expiration)
     except BadSignature:
         return False
 

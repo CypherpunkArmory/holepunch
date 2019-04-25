@@ -1,6 +1,7 @@
 import jwt
 import uuid
 import datetime
+import time
 import os
 from werkzeug.datastructures import Headers
 from flask.testing import FlaskClient
@@ -22,7 +23,8 @@ class TestClient(FlaskClient):
                 "iat": now,
                 "nbf": now,
                 "jti": uid,
-                "identity": current_user.email,
+                "exp": int(time.time()) + 1000,
+                "identity": current_user.uuid,
                 "type": ("refresh" if refresh is True else "access"),
                 "fresh": True,
                 "user_claims": ensure_user_claims(current_user.email),

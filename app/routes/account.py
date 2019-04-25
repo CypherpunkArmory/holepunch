@@ -11,11 +11,11 @@ from flask import redirect, request, Blueprint, jsonify, url_for
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import json_schema_manager
 from app.utils.errors import BadRequest, UnprocessableEntity, UserError, AccessDenied
-
 from app.utils.json import json_api, dig
 from app.serializers import ErrorSchema
 from jsonschema import ValidationError
 from werkzeug.exceptions import NotFound
+import uuid
 
 account_blueprint = Blueprint("account", __name__)
 
@@ -51,9 +51,9 @@ def create_token():
 def confirm(token):
 
     for salt in token_types:
-        email = authentication.decode_token(token, salt=salt)
-        if salt == "password-reset-salt" and email:
-            task_token = UserTokenService(email).issue_task_token(
+        uuid = authentication.decode_token(token, salt=salt)
+        if salt == "password-reset-salt" and uuid:
+            task_token = UserTokenService(uuid).issue_task_token(
                 "update:user:new_password"
             )
             return (
@@ -66,11 +66,24 @@ def confirm(token):
                 ),
                 200,
             )
-        elif salt == "email-confirm-salt" and email:
-            UserTokenService(email).confirm()
+        elif salt == "email-confirm-salt" and uuid:
+            uuid = authentication.decode_token(token, salt=salt)
+            UserTokenService(uuid).confirm()
             return redirect(url_for("auth.login", _external=True))
 
     return "", 403
+
+
+@account_blueprint.route("/account/token", methods=["DELETE"])
+@jwt_required
+@authentication.jwt_scope_required(all_of=["update:user"])
+def revoke_all_tokens():
+    current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
+    service = UserUpdateService(
+        current_user, scopes=authentication.jwt_scopes(), uuid=str(uuid.uuid4())
+    )
+    service.update()
+    return "", 204
 
 
 @account_blueprint.route("/account", methods=["PATCH"])
@@ -82,7 +95,7 @@ def update_user():
     try:
         json_schema_manager.validate(request.json, "user_update.json")
 
-        current_user = User.query.filter_by(email=get_jwt_identity()).first()
+        current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
 
         new_attrs = dig(request.json, "data/attributes", None)
         service = UserUpdateService(

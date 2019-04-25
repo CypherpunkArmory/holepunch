@@ -53,6 +53,6 @@ class TestChangePassword(object):
             json={"data": {"type": "user", "attributes": {"new_password": "abc123"}}},
         )
 
-        user = User.query.filter_by(email=current_user.email).first()
+        user = User.query.filter_by(email=current_user.email).first_or_404()
         assert res.status_code == 200
         assert user.check_password("abc123") is True

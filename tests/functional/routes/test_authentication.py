@@ -24,7 +24,7 @@ class TestAuthentication(object):
             jwt.decode(json_response["access_token"], os.getenv("JWT_SECRET_KEY"))[
                 "identity"
             ]
-            == current_user.email
+            == current_user.uuid
         )
 
     def test_login_with_unconfirmed_email(self, unauthenticated_client):

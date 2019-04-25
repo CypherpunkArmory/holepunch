@@ -24,7 +24,7 @@ subdomain_blueprint = Blueprint("subdomain", __name__)
 @subdomain_blueprint.route("/subdomains", methods=["GET"])
 @jwt_required
 def subdomain_index():
-    subdomains = User.query.filter_by(email=get_jwt_identity()).first().subdomains
+    subdomains = User.query.filter_by(uuid=get_jwt_identity()).first_or_404().subdomains
 
     name = dig(request.query_params, "filter/name")
     if name:
@@ -39,7 +39,7 @@ def subdomain_index():
 def subdomain_reserve():
     try:
         json_schema_manager.validate(request.json, "subdomain_create.json")
-        current_user = User.query.filter_by(email=get_jwt_identity()).first()
+        current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
         subdomain = SubdomainCreationService(
             current_user, dig(request.json, "data/attributes/name")
         ).reserve(True)
@@ -61,11 +61,10 @@ def subdomain_reserve():
 @subdomain_blueprint.route("/subdomains/<int:subdomain_id>", methods=["DELETE"])
 @jwt_required
 def subdomain_release(subdomain_id):
-    current_user = User.query.filter_by(email=get_jwt_identity()).first()
-    subdomain = Subdomain.query.filter_by(user=current_user, id=subdomain_id).first()
-
-    if not subdomain:
-        return json_api(NotFoundError, ErrorSchema), 404
+    current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
+    subdomain = Subdomain.query.filter_by(
+        user=current_user, id=subdomain_id
+    ).first_or_404()
 
     try:
         SubdomainDeletionService(current_user, subdomain).release()
@@ -85,7 +84,7 @@ def get_subdomain(subdomain_id) -> Response:
     if not subdomain_id:
         return json_api(BadRequest, ErrorSchema), 400
 
-    current_user = User.query.filter_by(email=get_jwt_identity()).first()
+    current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
     subdomain = Subdomain.query.filter_by(
         user=current_user, id=subdomain_id
     ).first_or_404()
