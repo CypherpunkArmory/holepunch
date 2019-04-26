@@ -17,6 +17,7 @@ from app.utils.errors import (
     AccessDenied,
     SubdomainInUse,
     SubdomainLimitReached,
+    TunnelError,
 )
 from app.utils.json import dig, json_api
 
@@ -58,6 +59,8 @@ def start_tunnel() -> Response:
             ).create()
         except SubdomainLimitReached:
             return json_api(SubdomainLimitReached, ErrorSchema), 403
+        except TunnelError:
+            return json_api(TunnelError, ErrorSchema), 500
 
         return json_api(tunnel_info, TunnelSchema), 201
 

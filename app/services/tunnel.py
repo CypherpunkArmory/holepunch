@@ -41,9 +41,21 @@ class TunnelCreationService:
 
     def create(self) -> Tunnel:
         self.check_subdomain_permissions()
+        job_id = None
         if self.over_tunnel_limit():
             raise TunnelLimitReached("")
-        job_id, ssh_port, ip_address = self.create_tunnel_nomad()
+        try:
+            job_id, result = self.start_tunnel_nomad()
+            ssh_port, ip_address = self.get_tunnel_details(result, job_id)
+        except TunnelError:
+            # if nomad fails to even start the job then there will be no job_id
+            if job_id:
+                TunnelDeletionService(
+                    current_user=self.current_user, tunnel=None, job_id=job_id
+                ).del_tunnel_nomad()
+            raise TunnelError("Failed to create tunnel")
+        except nomad.api.exceptions.BaseNomadException:
+            raise TunnelError("Failed to create tunnel")
 
         self.subdomain.in_use = True
 
@@ -81,9 +93,8 @@ class TunnelCreationService:
             return True
         return False
 
-    def create_tunnel_nomad(self) -> Tuple[str, str]:
-        """Create a tunnel by scheduling an SSH container into the Nomad cluster"""
-
+    def start_tunnel_nomad(self) -> Tuple[str, str]:
+        """Start a tunnel by scheduling an SSH container into the Nomad cluster"""
         meta = {
             "ssh_key": self.ssh_key,
             "box_name": self.subdomain.name,
@@ -91,8 +102,10 @@ class TunnelCreationService:
         }
 
         result = self.nomad_client.job.dispatch_job("ssh-client", meta=meta)
-        job_id = cast(str, result["DispatchedJobID"])
+        return (cast(str, result["DispatchedJobID"]), result)
 
+    def get_tunnel_details(self, result, job_id) -> Tuple[str, str]:
+        """Get details of ssh container"""
         # FIXME: nasty blocking loops should be asynced or something
         # Add error handling to this
         status = None
@@ -116,14 +129,18 @@ class TunnelCreationService:
         allocated_ports = values(allocation_info, "Resources/Networks/0/DynamicPorts/*")
         ssh_port = next(x for x in allocated_ports if x["Label"] == "ssh")["Value"]
 
-        return (job_id, ssh_port, ip_address)
+        return (ssh_port, ip_address)
 
 
 class TunnelDeletionService:
-    def __init__(self, current_user: User, tunnel: Tunnel):
+    def __init__(self, current_user: User, tunnel: Tunnel, job_id=None):
         self.current_user = current_user
         self.tunnel = tunnel
-        self.subdomain = tunnel.subdomain
+        if job_id:
+            self.job_id = job_id
+        if tunnel:
+            self.subdomain = tunnel.subdomain
+            self.job_id = tunnel.job_id
         if os.getenv("FLASK_ENV") == "production":
             self.nomad_client = nomad.Nomad(discover_service("nomad").url)
         else:
@@ -143,4 +160,4 @@ class TunnelDeletionService:
             db.session.flush()
 
     def del_tunnel_nomad(self):
-        self.nomad_client.job.deregister_job(self.tunnel.job_id)
+        self.nomad_client.job.deregister_job(self.job_id)

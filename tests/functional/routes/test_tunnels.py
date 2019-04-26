@@ -1,10 +1,12 @@
 import pytest
 from dpath.util import values
-
+from nomad.api.exceptions import BaseNomadException
 from app.models import Tunnel
-from app.services.tunnel import TunnelCreationService
+from app.services.tunnel import TunnelCreationService, TunnelDeletionService
+from app.utils.errors import TunnelError
 from tests.factories import subdomain, tunnel
 from tests.support.assertions import assert_valid_schema
+from unittest import mock
 
 
 class TestTunnels(object):
@@ -146,3 +148,88 @@ class TestTunnels(object):
         assert_valid_schema(res.get_json(), "tunnels.json")
         assert str(tun1.id) in values(res.get_json(), "data/*/id")
         assert str(tun2.id) not in values(res.get_json(), "data/*/id")
+
+    class TestFailedTunnels(object):
+        @mock.patch.object(
+            TunnelCreationService,
+            "get_tunnel_details",
+            side_effect=TunnelError(detail="Error"),
+            autospec=True,
+        )
+        @mock.patch.object(TunnelDeletionService, "del_tunnel_nomad")
+        def test_tunnel_delete_on_fail_deploy(
+            self, mock_del_tunnel, mock_create_tunnel, client, current_user
+        ):
+            """Tunnel delete is called when provisioning it fails"""
+            res = client.post(
+                "/tunnels",
+                json={
+                    "data": {
+                        "type": "tunnel",
+                        "attributes": {
+                            "port": ["http"],
+                            "sshKey": "i-am-lousy-public-key",
+                        },
+                    }
+                },
+            )
+
+            assert res.status_code == 500
+            assert mock_create_tunnel.called
+            assert mock_del_tunnel.called
+
+        @mock.patch.object(
+            TunnelCreationService,
+            "start_tunnel_nomad",
+            side_effect=TunnelError(detail="Error"),
+            autospec=True,
+        )
+        @mock.patch.object(TunnelDeletionService, "del_tunnel_nomad")
+        def test_tunnel_not_delete_on_start_up_fail(
+            self, mock_del_tunnel, mock_start_tunnel, client, current_user
+        ):
+            """Tunnel delete is not called when provisioning it fails"""
+            res = client.post(
+                "/tunnels",
+                json={
+                    "data": {
+                        "type": "tunnel",
+                        "attributes": {
+                            "port": ["http"],
+                            "sshKey": "i-am-lousy-public-key",
+                        },
+                    }
+                },
+            )
+
+            assert res.status_code == 500
+            assert mock_start_tunnel.called
+            assert not mock_del_tunnel.called
+
+        @mock.patch.object(
+            TunnelCreationService,
+            "start_tunnel_nomad",
+            side_effect=BaseNomadException("Error"),
+            autospec=True,
+        )
+        @mock.patch.object(TunnelDeletionService, "del_tunnel_nomad")
+        def test_tunnel_nomad_fail(
+            self, mock_del_tunnel, mock_start_tunnel, client, current_user
+        ):
+            """Tunnel delete is not called when nomad fails"""
+            res = client.post(
+                "/tunnels",
+                json={
+                    "data": {
+                        "type": "tunnel",
+                        "attributes": {
+                            "port": ["http"],
+                            "sshKey": "i-am-lousy-public-key",
+                        },
+                    }
+                },
+            )
+
+            assert res.status_code == 500
+            assert mock_start_tunnel.called
+            assert not mock_del_tunnel.called
