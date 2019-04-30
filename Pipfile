@@ -94,6 +94,7 @@ flask-cors = "*"
 pytest-cov = "*"
 fakeredis = "*"
 dnspython = "*"
+flask-limiter = "*"
 
 [requires]
 python_version = "3.7"

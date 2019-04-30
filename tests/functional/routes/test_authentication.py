@@ -4,6 +4,7 @@ import jwt
 from tests.factories import user
 from werkzeug.datastructures import Headers
 from flask.testing import FlaskClient
+from app import create_app
 
 
 class TestAuthentication(object):
@@ -26,6 +27,22 @@ class TestAuthentication(object):
             ]
             == current_user.uuid
         )
+
+    def login_route_is_time_limited(self, limited_app):
+        """Repeated posts to login fails"""
+
+        client = create_app("development").test_client()
+        client.post("/login", json={"email": current_user.email, "password": "123123"})
+        client.post("/login", json={"email": current_user.email, "password": "123123"})
+        res = client.post(
+            "/login", json={"email": current_user.email, "password": "123123"}
+        )
+
+        json_response = res.get_json()
+        assert "title" in json_response
+        assert "status" in json_response
+        assert json_response["title"] == "TooManyRequestsError"
+        assert json_response["status"] == 429
 
     def test_login_with_unconfirmed_email(self, unauthenticated_client):
         """Post to login url with unconfirmed email fails"""

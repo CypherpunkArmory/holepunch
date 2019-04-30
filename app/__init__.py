@@ -11,6 +11,9 @@ from momblish import Momblish
 from momblish.corpus import Corpus
 from flask_cors import CORS
 from flask_rq2 import RQ
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from werkzeug.contrib.fixers import ProxyFix
 import rollbar
 import rollbar.contrib.flask
 from packaging import version
@@ -59,6 +62,12 @@ def create_app(env: str = "development"):
 
     from querystring_parser.parser import parse as qs_parse
 
+    # This is required for route limits to be effective while behind Fabio.
+    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=1)
+    if env != "test":
+        limiter = Limiter(app, key_func=get_remote_address)
+        limiter.limit("3/second")(auth_blueprint)
+
     app.register_blueprint(auth_blueprint)
     app.register_blueprint(tunnel_blueprint)
     app.register_blueprint(subdomain_blueprint)
@@ -66,7 +75,7 @@ def create_app(env: str = "development"):
     app.register_blueprint(root_blueprint)
 
     from app.serializers import ErrorSchema
-    from app.utils.errors import OldAPIVersion, MalformedAPIHeader
+    from app.utils.errors import OldAPIVersion, MalformedAPIHeader, TooManyRequestsError
     import re
 
     @app.shell_context_processor
@@ -87,6 +96,10 @@ def create_app(env: str = "development"):
 
             # send exceptions from `app` to rollbar, using flask's signal system.
             got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
+
+    @app.errorhandler(429)
+    def too_many_requests(e):
+        return json_api(TooManyRequestsError, ErrorSchema), 429
 
     @app.errorhandler(500)
     def debug_error_handler(e):

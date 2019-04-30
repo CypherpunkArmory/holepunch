@@ -174,3 +174,8 @@ class ConsulLockException(JsonApiException):
 class LockAcquisitionException(JsonApiException):
     title = "LockAcquisitionException"
     status = "500"
+
+
+class TooManyRequestsError(JsonApiException):
+    title = "TooManyRequestsException"
+    status = "429"
