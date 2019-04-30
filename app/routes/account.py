@@ -2,6 +2,7 @@ from app.services import authentication
 from app.services.user import (
     UserCreationService,
     UserUpdateService,
+    UserDeletionService,
     UserNotificationService,
     UserTokenService,
 )
@@ -110,6 +111,25 @@ def update_user():
         return json_api(e, ErrorSchema), 403
     except ValidationError as e:
         return json_api(BadRequest(source=e.message), ErrorSchema), 400
+
+
+@account_blueprint.route("/account", methods=["DELETE"])
+@jwt_required
+@authentication.jwt_scope_required(any_of=["delete:user"])
+def delete_user():
+    """ Delete an existing User Record"""
+
+    try:
+        current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
+
+        service = UserDeletionService(current_user, scopes=authentication.jwt_scopes())
+        entries_deleted = service.delete()
+
+        return json_api(entries_deleted, UserSchema), 200
+    except UserError:
+        return json_api(UnprocessableEntity, ErrorSchema), 422
+    except AccessDenied as e:
+        return json_api(e, ErrorSchema), 403
 
 
 @account_blueprint.route("/account", methods=["POST"])

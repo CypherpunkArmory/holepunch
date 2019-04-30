@@ -24,7 +24,9 @@ class User(db.Model):
     password_hash = db.Column(db.String(128))
     tier = db.Column(db.String(64), nullable=False)
     uuid = db.Column(db.String(64), nullable=False, unique=True)
-    subdomains = db.relationship("Subdomain", back_populates="user", lazy="dynamic")
+    subdomains = db.relationship(
+        "Subdomain", back_populates="user", lazy="dynamic", cascade="all, delete"
+    )
     tunnels = db.relationship("Tunnel", secondary="subdomain", lazy="dynamic")
 
     def __repr__(self):

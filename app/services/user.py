@@ -1,5 +1,6 @@
 from app import db
-from app.models import User
+from app.models import User, Tunnel
+from app.services.tunnel import TunnelDeletionService
 from app.utils.errors import UserError, AccessDenied
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import event
@@ -140,6 +141,26 @@ class UserUpdateService:
         db.session.flush()
 
         return self.user
+
+
+class UserDeletionService:
+    def __init__(self, user, **attrs):
+        self.user = user
+        self.scopes = attrs.pop("scopes")
+        authentication.validate_scope_permissions("delete:user", self.scopes, attrs)
+
+    def delete(self):
+        if "delete:user" not in self.scopes:
+            raise AccessDenied("Insufficient permissions")
+
+        tunnels = Tunnel.query.filter_by(user=self.user)
+        for tunnel in tunnels:
+            TunnelDeletionService(self.user, tunnel).delete()
+
+        entries_deleted = db.session.delete(self.user)
+        db.session.flush()
+
+        return entries_deleted
 
 
 @event.listens_for(User.email, "set")

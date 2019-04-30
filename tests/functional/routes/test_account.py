@@ -1,5 +1,6 @@
 from tests.factories.user import UnconfirmedUserFactory, UserFactory
-from app.models import User
+from app.models import User, Subdomain, Tunnel
+from tests.factories import user, subdomain, tunnel
 from unittest import mock
 from app.services import authentication
 import re
@@ -161,7 +162,7 @@ class TestAccount(object):
             },
         )
 
-        user = User.query.filter_by(email=current_user.email).first_or_404()
+        user = User.query.filter_by(uuid=current_user.uuid).first_or_404()
         assert res.status_code == 200
         assert user.check_password("abc123") is True
         password_changed_email.assert_called_once()
@@ -242,6 +243,50 @@ class TestAccount(object):
         assert other_email_user is not None
 
         email_changed_email.assert_not_called()
+
+    def test_account_delete_with_correct_credentials(self, client, current_user):
+        """DELETE to /account url succeeds and account no longer exists"""
+        res = client.delete("/account")
+        user = User.query.filter_by(uuid=current_user.uuid).first()
+
+        assert res.status_code is 200
+        assert user is None
+
+    def test_account_delete_account_with_reserved_subdomains(
+        self, client, current_user, session
+    ):
+        """DELETE to /account url succeeds and associated reserved subdomains no longer exists"""
+        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub1")
+        session.add(sub1)
+        session.flush()
+
+        assert Subdomain.query.filter_by(id=sub1.id).first() is not None
+
+        delete_res = client.delete("/account")
+
+        assert delete_res.status_code is 200
+        assert User.query.filter_by(uuid=current_user.uuid).first() is None
+        assert Subdomain.query.filter_by(id=sub1.id).first() is None
+
+    def test_account_delete_account_with_existing_tunnels(
+        self, client, current_user, session
+    ):
+        """DELETE to /account url succeeds and associated tunnels no longer exists"""
+        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub1")
+        tun1 = tunnel.TunnelFactory(subdomain=sub1)
+
+        session.add(tun1)
+        session.flush()
+
+        assert Subdomain.query.filter_by(id=sub1.id).first() is not None
+        assert Tunnel.query.filter_by(job_id=tun1.job_id).first() is not None
+
+        res = client.delete("/account")
+
+        assert res.status_code is 200
+        assert User.query.filter_by(uuid=current_user.uuid).first() is None
+        assert Subdomain.query.filter_by(id=sub1.id).first() is None
+        assert Tunnel.query.filter_by(job_id=tun1.job_id).first() is None
 
     def test_revoke_tokens(self, current_user, client, unauthenticated_client):
         """Delete to /account/token url returns a 204 on success and bearer token no longer works"""

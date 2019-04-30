@@ -62,4 +62,4 @@ def session():
 
 @jwt.user_claims_loader
 def ensure_user_claims(email):
-    return {"scopes": ["update:user"]}
+    return {"scopes": ["update:user", "delete:user"]}
