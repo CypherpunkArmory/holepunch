@@ -33,7 +33,7 @@ def create_token():
         user = User.query.filter_by(email=email).first_or_404()
         uns = UserNotificationService(user)
 
-        if token_type == "email_confim":
+        if token_type == "email_confirm":
             uns.activation_emails()
         elif token_type == "password_reset":
             uns.password_reset_email()

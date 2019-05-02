@@ -30,7 +30,7 @@ class TestAccount(object):
         )
 
         assert res.status_code == 200
-        send_confirm_email.assert_called_once()
+        assert send_confirm_email.call_count is 2
         (email, token), _ = send_confirm_email.call_args
         assert email == "forgetful@gmail.com"
         assert re.match("http://localhost:5000/account/confirm(.*)", token)
