@@ -8,7 +8,7 @@ RUN apk add unzip
 RUN curl https://releases.hashicorp.com/vault/1.1.1/vault_1.1.1_linux_amd64.zip -o vault.zip -s
 RUN unzip vault.zip -d /usr/bin
 
-COPY updatecert.sh /usr/bin/updatecert.sh
+COPY ./updatecerts.sh /usr/bin/updatecerts.sh
 
 #Expects the following ENVs
 # VAULT_ADDR="http://vault:8200"
@@ -20,7 +20,7 @@ COPY updatecert.sh /usr/bin/updatecert.sh
 
 
 
-CMD bash
+CMD /usr/bin/updatecerts.sh
 
 #certbot certonly \
 #  -n --agree-tos --email andrew@userland.tech \

@@ -17,23 +17,26 @@ check_errs()
   fi
 }
 
-AWS_ACCESS_KEY_ID=`vault kv get -field=key secret/certbotAwsKeyID`
-check_errs $? "vault kv get AWS key ID errored"
+if [[ -z $AWS_ACCESS_KEY_ID ]]; then
+  check_errs $? "no AWS ACCESS KEY set"
+fi
 
-AWS_SECRET_ACCESS_KEY=`vault kv get -field=key secret/certbotAwsKey`
-check_errs $? "vault kv get AWS key errored"
+if [[ -z $AWS_SECRET_ACCESS_KEY]]; then 
+  check_errs $? "no AWS SECRET KEY SET"
+fi
+
+if [[-z $ADMINEMAIL ]]; then
+  check_errs $? "no ADMIN EMAIL SET"
+fi
+if [[ -z $DOMAIN ]]; then
+  check_errs $? "no domain name set"
 
 # Make cert request
-if [[ -z $ADMINEMAIL] && [ -z $DOMAIN] ]; then
-  certbot certonly \
+certbot certonly \
     -n --agree-tos --email $ADMINEMAIL \
     --dns-route53 \
     -d $DOMAIN
-    check_errs $? "certbot cert update errored"
-else
-  echo "CERTPATH not set"
-  exit (1) 
-fi
+check_errs $? "certbot cert update errored"
 
 
 # Store result in vault
