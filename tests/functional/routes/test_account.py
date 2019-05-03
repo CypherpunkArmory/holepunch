@@ -94,7 +94,7 @@ class TestAccount(object):
             "user_claims"
         ]["scopes"] == ["update:user:new_password"]
 
-    def test_redirects_to_login_when_confirming_a_email_confirm_token(
+    def test_correct_status_code_when_confirming_a_email_confirm_token(
         self, unauthenticated_client, session
     ):
         """Returns a redirect to /login when confirming an email-confirm token"""
@@ -105,8 +105,7 @@ class TestAccount(object):
         token = authentication.encode_token(user.uuid, "email-confirm-salt")
         res = unauthenticated_client.get(f"/account/confirm/{token}")
 
-        assert res.status_code == 302
-        assert res.headers["Location"] == "http://localhost:5000/session"
+        assert res.status_code == 204
 
     def test_register_with_email_and_password(self, unauthenticated_client):
         """Post to /account url returns a 204 on success"""

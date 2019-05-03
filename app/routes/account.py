@@ -70,9 +70,9 @@ def confirm(token):
         elif salt == "email-confirm-salt" and uuid:
             uuid = authentication.decode_token(token, salt=salt)
             UserTokenService(uuid).confirm()
-            return redirect(url_for("auth.login", _external=True))
+            return "", 204
 
-    return "", 403
+    return json_api(AccessDenied, ErrorSchema), 403
 
 
 @account_blueprint.route("/account/token", methods=["DELETE"])
