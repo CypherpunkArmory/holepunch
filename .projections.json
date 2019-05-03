@@ -1,0 +1,24 @@
+{
+  "app/routes/*.py": {
+    "type": "route",
+    "alternate": "tests/functional/routes/{dirname}/test_{basename}.py"
+  },
+  "app/services/*.py": {
+    "type": "service",
+    "alternate": "tests/unit/services/{dirname}/test_{basename}_service.py"
+  },
+  "app/utils/*.py": {
+    "type": "util",
+    "alternate": "tests/unit/util/{dirname}/test_{basename}.py"
+  },
+  "app/jobs/*.py": {
+    "type": "job",
+    "alternate": "tests/functional/jobs/{dirname}/test_{basename}_job.py"
+  },
+  "app/__init__.py": {
+    "type": "init"
+  },
+  "app/models.py": {
+    "type": "model"
+  }
+}

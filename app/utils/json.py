@@ -4,9 +4,10 @@ from flask import make_response
 from jsonschema import RefResolver, validate, ValidationError
 from typing import Union, Dict
 from dpath.util import get
+from flask import Response
 
 
-def json_api(resource, resource_class, many=False):
+def json_api(resource, resource_class, many=False) -> Response:
     json_obj = resource_class().dump(resource, many=many).data
     response = make_response(json.dumps(json_obj))
     response.headers["Content-Type"] = "application/vnd.api+json"
@@ -20,22 +21,11 @@ def dig(obj, keypath, default=None):
         return default
 
 
-class RelativeRefResolver(RefResolver):
-    # Monkey Patch in-file relative url resolutions into the RefResolver
-    # How the _fuck_ is this not fixed yet
-    def resolve(self, ref):
-        if ref[0] == "#":
-            ref = self.referrer.name + ref
-
-        url = self._urljoin_cache(self.resolution_scope, ref)
-        return url, self._remote_cache(url)
-
-
 class JSONSchemaManager:
     def __init__(self, directory: str, app=None):
         self.app = app
         self.relative_directory = directory
-        self.relative_resolvers: Dict[str, RelativeRefResolver] = dict()
+        self.relative_resolvers: Dict[str, RefResolver] = dict()
         self.schema_data: Dict[str, Dict] = dict()
 
         if app is not None:
@@ -74,7 +64,7 @@ class JSONSchemaManager:
 
         with open(absolute_path) as schema_file:
             schema_data = json.loads(schema_file.read())
-            self.relative_resolvers[schema] = RelativeRefResolver(
+            self.relative_resolvers[schema] = RefResolver(
                 base_uri=f"file://{self.directory}/", referrer=schema_file
             )
             self.schema_data[schema] = schema_data

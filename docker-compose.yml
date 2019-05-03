@@ -1,6 +1,23 @@
-version: '3'
-services:
+version: '3.7'
 
+x-nomad: &x-nomad |
+  {
+    "server": {
+      "enabled": true,
+      "bootstrap_expect": 1
+    },
+    "datacenter": "city",
+    "data_dir": "/tmp/nomad/data/",
+    "bind_addr": "0.0.0.0",
+    "advertise": {
+        "http": "nomad:4646",
+        "rpc": "nomad:4647",
+        "serf": "nomad:4648"
+    },
+    "enable_debug": true
+  }
+
+services:
   db:
     image: postgres:10.5
     volumes:
@@ -12,6 +29,7 @@ services:
     image: redis:4
     command: redis-server --daemonize no
 
+
   default: &default
     build:
       context: .
@@ -21,8 +39,8 @@ services:
     environment:
       - DATABASE_URL=postgres@db:5432
       - CONSUL_HOST=consul
-      - SEA_HOST=nomad
-      - FLASK_APP=app:create_app('development')
+      - SEA_HOST=${SEA_HOST}
+      - FLASK_APP=${FLASK_APP}
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - .:/holepunch
@@ -33,6 +51,14 @@ services:
       - redis
       - mail
       - jobs
+
+  jump:
+    image: cypherpunkarmory/sshd:develop
+    volumes:
+      - ${SSH_KEY}:/home/punch/.ssh/authorized_keys
+    command: bash -l -c 'chown punch:punch /home/punch/.ssh/authorized_keys && chmod 600 /home/punch/.ssh/authorized_keys && /usr/sbin/sshd -D'
+    ports:
+      - "3122:22"
 
   mail:
     image: mailhog/mailhog
@@ -73,13 +99,14 @@ services:
     command: agent -data-dir=/consul/data -config-dir=/consul/config -dev -client 0.0.0.0 -log-level=INFO
 
   nomad:
-    image: stephenprater/populated-nomad
+    image: cypherpunkarmory/local-nomad:develop
     cap_add:
       - SYS_ADMIN
     environment:
-      - NOMAD_DATA_DIR=/tmp/nomad/data
-      - NOMAD_RUN_ROOT=1
-      - NOMAD_ADDR=http://nomad:4646
+      NOMAD_DATA_DIR: /tmp/nomad/data
+      NOMAD_RUN_ROOT: 1
+      NOMAD_ADDR: http://nomad:4646
+      NOMAD_LOCAL_CONFIG: *x-nomad
     ports:
       - "4646:4646"
     volumes:
@@ -92,19 +119,16 @@ services:
   fabio:
     image: fabiolb/fabio:1.5.10-go1.11.1
     environment:
+      - FABIO_LOG_LEVEL=DEBUG
       - FABIO_REGISTRY_CONSUL_ADDR=consul:8500
-      - FABIO_PROXY_ADDR=:3000;proto=http,:2200;proto=tcp,:2201;proto=tcp,:2202;proto=tcp,:2203;proto=tcp,:2204;proto=tcp,:2205;proto=tcp
+      - FABIO_PROXY_ADDR=:9999;proto=http,:9991;proto=tcp+sni
     links:
       - consul
 
     ports:
       - "9998:9998" # GUI/management
-      - "9999:9999" # HTTP exposed
-      - "2201:2201"
-      - "2202:2202"
-      - "2203:2203"
-      - "2204:2204"
-      - "2205:2205"
+      - "80:9999" # HTTP exposed
+      - "443:9991" # HTTP exposed
 
 volumes:
   postgres:

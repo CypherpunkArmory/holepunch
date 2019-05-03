@@ -1,4 +1,3 @@
-import os
 from typing import Tuple, cast
 
 import nomad
@@ -17,27 +16,37 @@ from app.utils.json import dig
 
 from app.utils.dns import discover_service
 
-tunnel_limits = {"free": 1, "paid": 2}
+from typing import Optional
+
+from flask import current_app
 
 
 class TunnelCreationService:
     def __init__(
-        self, current_user: User, subdomain_id: int, port_type: list, ssh_key: str
+        self,
+        current_user: User,
+        subdomain_id: Optional[int],
+        port_type: list,
+        ssh_key: str,
     ):
-
-        self.subdomain = None
-
-        if subdomain_id:
-            self.subdomain = Subdomain.query.get(subdomain_id)
 
         self.port_type = port_type
         self.ssh_key = ssh_key
         self.current_user = current_user
-        # We need to do this each time so each if a nomad service goes down it doesnt affect web api
-        if os.getenv("FLASK_ENV") == "production":
+
+        if subdomain_id:
+            self.subdomain = Subdomain.query.get(subdomain_id)
+        else:
+            self.subdomain = SubdomainCreationService(
+                self.current_user
+            ).get_unused_subdomain()
+
+        # We need to do this each time so each if a nomad service goes down
+        # it doesnt affect web api
+        if current_app.config["ENV"] == "production":
             self.nomad_client = nomad.Nomad(discover_service("nomad").url)
         else:
-            self.nomad_client = nomad.Nomad(host=os.getenv("SEA_HOST", "0.0.0.0"))
+            self.nomad_client = nomad.Nomad(host=current_app.config["SEA_HOST"])
 
     def create(self) -> Tunnel:
         self.check_subdomain_permissions()
@@ -45,7 +54,7 @@ class TunnelCreationService:
         if self.over_tunnel_limit():
             raise TunnelLimitReached("")
         try:
-            job_id, result = self.start_tunnel_nomad()
+            job_id, result = self.create_tunnel_nomad()
             ssh_port, ip_address = self.get_tunnel_details(result, job_id)
         except TunnelError:
             # if nomad fails to even start the job then there will be no job_id
@@ -76,35 +85,33 @@ class TunnelCreationService:
         return tunnel
 
     def check_subdomain_permissions(self) -> None:
-        if self.subdomain and self.subdomain.user != self.current_user:
+        if self.subdomain.user != self.current_user:
             raise AccessDenied("You do not own this subdomain")
-        elif self.subdomain and self.subdomain.in_use:
+        elif self.subdomain.in_use:
             raise SubdomainInUse("Subdomain is in use")
-        elif self.subdomain and self.subdomain.user == self.current_user:
+        elif self.subdomain.user == self.current_user:
             pass
-        else:
-            self.subdomain = SubdomainCreationService(
-                self.current_user
-            ).get_unused_subdomain()
 
     def over_tunnel_limit(self) -> bool:
         num_tunnels = self.current_user.tunnels.count()
-        if num_tunnels >= tunnel_limits[self.current_user.tier]:
+        if num_tunnels >= self.current_user.limits().tunnel_count:
             return True
         return False
 
-    def start_tunnel_nomad(self) -> Tuple[str, str]:
-        """Start a tunnel by scheduling an SSH container into the Nomad cluster"""
+    def create_tunnel_nomad(self) -> Tuple[str, dict]:
+        """Create a tunnel by scheduling an SSH container into the Nomad cluster"""
+
         meta = {
             "ssh_key": self.ssh_key,
             "box_name": self.subdomain.name,
-            "base_url": os.getenv("BASE_SERVICE_URL", ".local"),
+            "base_url": current_app.config["BASE_SERVICE_URL"],
+            "bandwidth": str(self.current_user.limits().bandwidth),
         }
 
         result = self.nomad_client.job.dispatch_job("ssh-client", meta=meta)
         return (cast(str, result["DispatchedJobID"]), result)
 
-    def get_tunnel_details(self, result, job_id) -> Tuple[str, str]:
+    def get_tunnel_details(self, result: dict, job_id: str) -> Tuple[str, str]:
         """Get details of ssh container"""
         # FIXME: nasty blocking loops should be asynced or something
         # Add error handling to this
@@ -129,11 +136,14 @@ class TunnelCreationService:
         allocated_ports = values(allocation_info, "Resources/Networks/0/DynamicPorts/*")
         ssh_port = next(x for x in allocated_ports if x["Label"] == "ssh")["Value"]
 
+        if current_app.config["ENV"] == "development":
+            ip_address = current_app.config["SEA_HOST"]
+
         return (ssh_port, ip_address)
 
 
 class TunnelDeletionService:
-    def __init__(self, current_user: User, tunnel: Tunnel, job_id=None):
+    def __init__(self, current_user: User, tunnel: Optional[Tunnel], job_id=None):
         self.current_user = current_user
         self.tunnel = tunnel
         if job_id:
@@ -141,10 +151,10 @@ class TunnelDeletionService:
         if tunnel:
             self.subdomain = tunnel.subdomain
             self.job_id = tunnel.job_id
-        if os.getenv("FLASK_ENV") == "production":
+        if current_app.config["ENV"] == "production":
             self.nomad_client = nomad.Nomad(discover_service("nomad").url)
         else:
-            self.nomad_client = nomad.Nomad(host=os.getenv("SEA_HOST", "0.0.0.0"))
+            self.nomad_client = nomad.Nomad(host=current_app.config["SEA_HOST"])
 
     def delete(self):
         self.del_tunnel_nomad()

@@ -1,0 +1,87 @@
+# https://taskfile.org
+---
+version: '2'
+
+output: prefixed
+
+tasks:
+  setup_db:
+    prefix: 'setup_db'
+    desc: Setup Database
+    cmds:
+      - docker-compose exec db createdb -U postgres holepunch_development
+      - docker-compose exec db createdb -U postgres holepunch_test
+      - docker-compose exec web flask db upgrade
+
+  setup_net:
+    prefix: 'setup_net'
+    desc: Setup the extra interface for Holepunch Nomad
+    vars:
+      LOOPBACK_ALIAS: 172.16.123.1
+    cmds:
+      - sudo ifconfig lo0 alias {{.LOOPBACK_ALIAS}}
+
+  setup_tun:
+    prefix: 'setup_tun'
+    desc: Build a development SSH container and schedule it on the local nomad
+    cmds:
+      - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:develop .
+      - NOMAD_ADDR=http://127.0.0.1:4646 nomad job run deploy/ssh.hcl
+
+
+  clean_tunnels:
+    prefix: 'clean'
+    desc: Shutdown All Running Tunnels and Destroy Unreserved Subdomains
+    cmds:
+      - nomad job status | grep "ssh-client/dispatch" | cut -d ' ' -f1 | xargs -I '{}' sh -lc 'yes | nomad job stop --purge {}'
+      - echo "delete from tunnel; delete from subdomain where reserved is false" | psql -U postgres -h 0.0.0.0 -d holepunch_development
+
+  add_host:
+    prefix: 'add_host'
+    desc: Add a domain to your hosts file so you can test
+    cmds:
+      - (test -n "{{.DOMAIN}}") || (echo "DOMAIN is required"; exit 1)
+      - sudo sh -lc 'echo "127.0.0.1	{{.DOMAIN}}" >> /private/etc/hosts'
+
+  start_test_server:
+    prefix: 'test_server'
+    desc: Start the HTTPBIN test server on {{.LISTEN_PORT}}
+    vars:
+      LISTEN_PORT: 4000
+    cmds:
+      - "docker run -p {{.LISTEN_PORT}}:80 -e GUNICORN_CMD_ARGS=\"--capture-output --error-logfile - --access-logfile - --access-logformat '%(h)s %(t)s %(r)s %(s)s Host: %({Host}i)s}'\" kennethreitz/httpbin"
+
+  release-ssh:
+    prefix: 'release-ssh'
+    desc: Release a new version of the SSH Container
+    vars:
+      VER: next
+      BRANCH: master
+      NEXT_TAG:
+        sh: if [ "{{.VER}}" = "next" ]; then git describe --abbrev=0 --tags --match "ssh*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3+1}'; else echo "{{.VER}}"; fi
+    cmds:
+      - (test $(git rev-parse --abbrev-ref HEAD) = {{.BRANCH}}) || (echo "Release from master only!"; exit 1)
+      - host nomad || (echo "Couldn't find nomad host - are you on the VPN?"; exit 1)
+      - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:{{.NEXT_TAG}}
+      - docker push cypherpunkarmory/sshd:{{.NEXT_TAG}}
+      - if [ "{{.BRANCH}}" = "master"]; then git tag {{.NEXT_TAG}}; git push origin {{.NEXT_TAG}}; fi
+      - cat deploy/ssh.hcl | sed 's/cypherpunkarmory/sshd:develop/cypherpunkarmory/sshd:{{.NEXT_TAG}}' | sed 's/network_mode.*//' | NOMAD_ADDR=http://nomad:4646 nomad job run -
+
+  release:
+    prefix: 'release'
+    desc: Push a holepunch release to nomad.
+    vars:
+      VER: next
+      BRANCH: master
+      NEXT_TAG:
+        sh: if [ "{{.VER}}" = "next" ]; then git describe --abbrev=0 --tags --match "holepunch*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3+1}'; else echo "{{.VER}}"; fi
+    cmds:
+      - (test $(git rev-parse --abbrev-ref HEAD) = {{.BRANCH}}) || (echo "Release from master only!"; exit 1)
+      - host nomad || (echo "Couldn't find nomad host - are you on the VPN?"; exit 1)
+      - echo "Updating from {{.RELEASED_TAG}} to {{.NEXT_TAG}}"
+      - docker build --build-arg APP_NAME=holepunch -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
+      - docker push cypherpunkarmory/holepunch:{{.NEXT_TAG}}
+      - if [ "{{.BRANCH}}" = "master"]; then git tag {{.NEXT_TAG}}; git push origin {{.NEXT_TAG}}; fi
+      - cat deploy/holepunch.hcl | sed 's/cypherpunkarmory/holepunch-production:develop/cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}' | NOMAD_ADDR=http://nomad:4646 nomad job run -
+
+

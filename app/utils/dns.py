@@ -1,14 +1,14 @@
 import dns.resolver
 import dns.name
 import dns.rdatatype
-import os
 import random
+import os
 
-from typing import Iterator, NamedTuple
+from typing import Iterator, NamedTuple, List
 
 
 resolver = dns.resolver.Resolver(configure=False)
-resolver.nameservers = [os.getenv("DNS_ADDR", "172.31.1.88")]
+resolver.nameservers = [os.environ.get("DNS_ADDR")]
 resolver.search = [
     dns.name.from_text("service.city.consul"),
     dns.name.from_text("service.consul"),
@@ -35,8 +35,8 @@ class Service:
             if x.rdtype == dns.rdatatype.A:
                 nodes[x.name.to_text().strip(".")] = x[0].address
 
-        self.srv = []
-        self.weights = []
+        self.srv: List[Entry] = []
+        self.weights: List[int] = []
 
         max_priority = max([r.priority for r in self.response.answer[0]])
 

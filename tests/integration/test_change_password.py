@@ -1,5 +1,4 @@
 from app.models import User
-from unittest import mock
 import re
 import requests
 
@@ -53,6 +52,6 @@ class TestChangePassword(object):
             json={"data": {"type": "user", "attributes": {"new_password": "abc123"}}},
         )
 
-        user = User.query.filter_by(email=current_user.email).first_or_404()
+        user = User.query.filter_by(email=current_user.email).first()
         assert res.status_code == 200
         assert user.check_password("abc123") is True

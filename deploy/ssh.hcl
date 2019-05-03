@@ -4,7 +4,7 @@ job "ssh-client" {
   type = "batch"
 
   parameterized {
-    meta_required = ["ssh_key", "box_name", "base_url"]
+    meta_required = ["ssh_key", "box_name", "base_url", "bandwidth"]
   }
 
   group "holepunch" {
@@ -14,6 +14,7 @@ job "ssh-client" {
 
       config {
         image = "cypherpunkarmory/sshd:develop"
+        network_mode = "holepunch_default"
 
         labels {
           "io.holepunch.sshd" = "${NOMAD_META_BOX_NAME}"
@@ -28,6 +29,7 @@ job "ssh-client" {
 
       env {
         "SSH_KEY" = "${NOMAD_META_SSH_KEY}"
+        "BANDWIDTH" = "${NOMAD_META_BANDWIDTH}"
       }
 
       service {
@@ -85,7 +87,7 @@ job "ssh-client" {
 
       resources {
         cpu    = 100 # MHz
-        memory = 20 # MB
+        memory = 2000 # MB
 
         network {
           mbits = 1

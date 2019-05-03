@@ -2,7 +2,7 @@ import os
 import traceback
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request, got_request_exception
+from flask import Flask, request, got_request_exception
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -21,6 +21,8 @@ from packaging import version
 from app.utils.json import JSONSchemaManager, json_api
 
 # this is kinda tacky - we should look to see if there's a environment autoloader
+# this has to be checked against the actual environment in order to load the .env
+# file in production and boot the app correctly
 if os.getenv("FLASK_ENV") == "production":
     load_dotenv("/holepunch/.env.production")
     from ddtrace import patch
@@ -63,7 +65,7 @@ def create_app(env: str = "development"):
     from querystring_parser.parser import parse as qs_parse
 
     # This is required for route limits to be effective while behind Fabio.
-    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=1)
+    app.wsgi_app = ProxyFix(app.wsgi_app, num_proxies=1)  # type: ignore
     if env != "test":
         limiter = Limiter(app, key_func=get_remote_address)
         limiter.limit("3/second")(auth_blueprint)
@@ -75,7 +77,13 @@ def create_app(env: str = "development"):
     app.register_blueprint(root_blueprint)
 
     from app.serializers import ErrorSchema
-    from app.utils.errors import OldAPIVersion, MalformedAPIHeader, TooManyRequestsError
+    from app.utils.errors import (
+        OldAPIVersion,
+        MalformedAPIHeader,
+        TooManyRequestsError,
+        NotFoundError,
+        InternalServerError,
+    )
     import re
 
     @app.shell_context_processor
@@ -84,10 +92,10 @@ def create_app(env: str = "development"):
 
     @app.before_first_request
     def init_rollbar():
-        if os.getenv("FLASK_ENV") == "production":
+        if env == "production":
             rollbar.init(
-                os.getenv("ROLLBAR_TOKEN"),
-                os.getenv("FLASK_ENV"),
+                app.config["ROLLBAR_TOKEN"],
+                env,
                 # server root directory, makes tracebacks prettier
                 root=os.path.dirname(os.path.realpath(__file__)),
                 # flask already sets up logging
@@ -98,17 +106,27 @@ def create_app(env: str = "development"):
             got_request_exception.connect(rollbar.contrib.flask.report_exception, app)
 
     @app.errorhandler(429)
-    def too_many_requests(e):
+    def too_many_requests(_):
         return json_api(TooManyRequestsError, ErrorSchema), 429
 
     @app.errorhandler(500)
     def debug_error_handler(e):
-        return (
-            jsonify(
-                error=500, text=str(e), exception=traceback.format_exc().split("\n")
-            ),
-            500,
-        )
+        if env == "production":
+            return json_api(InternalServerError, ErrorSchema), 500
+        else:
+            return (
+                json_api(
+                    InternalServerError(
+                        detail=str(e), backtrace=traceback.format_exc().split("\n")
+                    ),
+                    ErrorSchema,
+                ),
+                500,
+            )
+
+    @app.errorhandler(404)
+    def page_not_found(e):
+        return json_api(NotFoundError(detail=e.description), ErrorSchema), 404
 
     @app.before_request
     def parse_query_params():
@@ -118,12 +136,12 @@ def create_app(env: str = "development"):
             request.query_params = dict()
 
     def check_version(date):
-        return version.parse(date) >= version.parse(os.getenv("MIN_CALVER"))
+        return version.parse(date) >= version.parse(app.config["MIN_CALVER"])
 
     @app.before_request
     def check_api_version():
         if "Api-Version" in request.headers:
-            if not re.match("^\d+\.\d+\.\d+\.\d+$", request.headers["Api-Version"]):
+            if not re.match(r"^\d+\.\d+\.\d+\.\d+$", request.headers["Api-Version"]):
                 return json_api(MalformedAPIHeader, ErrorSchema), 403
             if check_version(request.headers["Api-Version"]):
                 return

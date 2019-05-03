@@ -1,5 +1,3 @@
-import os
-
 import jwt
 from tests.factories import user
 from werkzeug.datastructures import Headers
@@ -10,7 +8,9 @@ from app import create_app
 class TestAuthentication(object):
     """A User can login"""
 
-    def test_login_with_email_and_password(self, unauthenticated_client, current_user):
+    def test_login_with_email_and_password(
+        self, app, unauthenticated_client, current_user
+    ):
         """Post to /login url returns an access token if correct creds and user is confirmed"""
 
         res = unauthenticated_client.post(
@@ -22,7 +22,7 @@ class TestAuthentication(object):
         assert "access_token" in json_response
         assert "refresh_token" in json_response
         assert (
-            jwt.decode(json_response["access_token"], os.getenv("JWT_SECRET_KEY"))[
+            jwt.decode(json_response["access_token"], app.config["JWT_SECRET_KEY"])[
                 "identity"
             ]
             == current_user.uuid

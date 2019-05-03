@@ -3,6 +3,7 @@ from app.utils.dns import Service
 
 from collections import Counter
 import dns.message
+import random
 
 # DO NOT ADJUST THE FORMATTING ON THIS STRING
 # IT WILL NOT PARSE
@@ -50,10 +51,15 @@ class TestServiceDiscovery(object):
     def test_service_entry_select_by_weights(self, response):
         """ Service Entries are selected by weight when multiple servers share
         a priority"""
+        rstate = random.getstate()
+        random.seed(5)
+
         srv = Service(response)
         counted = Counter([srv.port for _ in range(100)])
         assert 65 <= counted["4646"] <= 75
         assert 25 <= counted["4647"] <= 35
+
+        random.setstate(rstate)
 
     def test_service_entry_low_priority_ignored(self, response):
         """ Service Entry low-priority servers are not returned by default"""

@@ -60,3 +60,4 @@ class ErrorSchema(Schema):
     detail = fields.Str()
     source = fields.Str()
     code = fields.Str()
+    backtrace = fields.List(fields.Str())

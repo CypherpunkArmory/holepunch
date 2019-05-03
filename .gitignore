@@ -2,7 +2,7 @@ venv/
 .pytest_cache/
 .vagrant/
 .DS_Store
-.env.*
+.env.production
 .flaskenv
 *.pyc
 *.pyo
@@ -18,6 +18,8 @@ _mailinglist
 .idea/
 docs/_build/
 tags
+tags.lock
+tags.temp
 
 # Coverage reports
 htmlcov/

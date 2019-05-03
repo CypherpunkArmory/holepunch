@@ -9,4 +9,4 @@ fi
 
 echo "punch:*" | chpasswd -e
 echo $SSH_KEY > /home/punch/.ssh/authorized_keys
-exec /usr/sbin/sshd -D
+exec trickle -s -u $BANDWIDTH -d $BANDWIDTH /usr/sbin/sshd -D

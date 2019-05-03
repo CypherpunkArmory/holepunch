@@ -1,4 +1,5 @@
-from app.services.user import UserCreationService, UserNotificationService
+from app.services.user.user_creation_service import UserCreationService
+from app.services.user.user_notification_service import UserNotificationService
 from unittest import mock
 from tests.factories.user import WaitingUserFactory, UnconfirmedUserFactory, UserFactory
 
@@ -6,8 +7,10 @@ from tests.factories.user import WaitingUserFactory, UnconfirmedUserFactory, Use
 class TestUserCreationService(object):
     """User creation service has correct logic"""
 
-    @mock.patch("app.services.user.send_confirm_email.queue")
-    @mock.patch("app.services.user.send_password_change_confirm_email.queue")
+    @mock.patch("app.services.user.user_notification_service.send_confirm_email.queue")
+    @mock.patch(
+        "app.services.user.user_notification_service.send_password_change_confirm_email.queue"
+    )
     def test_email_send_triggered_on_update(
         self, password_changed, registration_email, session
     ):
@@ -17,9 +20,13 @@ class TestUserCreationService(object):
 
 
 @mock.patch(
-    "app.services.user.send_beta_backlog_notification_email.queue", autospec=True
+    "app.services.user.user_notification_service.send_beta_backlog_notification_email.queue",
+    autospec=True,
 )
-@mock.patch("app.services.user.send_confirm_email.queue", autospec=True)
+@mock.patch(
+    "app.services.user.user_notification_service.send_confirm_email.queue",
+    autospec=True,
+)
 class TestUserNotificationService(object):
     """ User Notification sends the right emails on signup """
 

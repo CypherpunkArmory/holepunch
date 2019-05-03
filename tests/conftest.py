@@ -1,4 +1,5 @@
 import pytest
+from dotenv import load_dotenv
 from app import create_app
 from app import db as _db
 from sqlalchemy import event
@@ -8,6 +9,7 @@ from tests.factories import user
 
 @pytest.fixture(scope="session")
 def app(request):
+    load_dotenv("/holepunch/.env.test", override=True)
     app = create_app("test")
     return app
 

@@ -5,7 +5,6 @@ from app.jobs.email import (
     send_password_reset_confirm_email,
 )
 import requests
-from flask import url_for
 
 
 class TestEmailJob(object):

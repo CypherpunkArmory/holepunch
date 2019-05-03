@@ -108,7 +108,7 @@
     "relationship": {
       "type": "object",
       "anyOf": [
-        { "required": [ "links" ] },
+        { "required": ["links"] },
         { "required": ["meta"] },
         { "required": ["data" ] }
       ],

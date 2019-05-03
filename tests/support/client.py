@@ -2,12 +2,12 @@ import jwt
 import uuid
 import datetime
 import time
-import os
 from werkzeug.datastructures import Headers
 from flask.testing import FlaskClient
 from app.routes.authentication import ensure_user_claims
 import requests
 import json
+from flask import current_app
 
 
 class TestClient(FlaskClient):
@@ -30,7 +30,9 @@ class TestClient(FlaskClient):
                 "user_claims": ensure_user_claims(current_user.email),
             }
 
-            access_token = jwt.encode(token_data, os.getenv("JWT_SECRET_KEY"), "HS256")
+            access_token = jwt.encode(
+                token_data, current_app.config["JWT_SECRET_KEY"], "HS256"
+            )
             self._token = access_token.decode("utf-8")
 
         super(TestClient, self).__init__(*args, **kwargs)
@@ -41,7 +43,7 @@ class TestClient(FlaskClient):
                 {
                     "Authorization": f"Bearer {self._token}",
                     "Content-Type": "application/vnd.api+json",
-                    "Api-Version": os.getenv("MIN_CALVER"),
+                    "Api-Version": current_app.config["MIN_CALVER"],
                 }
             )
 

@@ -33,13 +33,37 @@ jobs:
           environment:
             DOCKERIZE_VERSION: v0.3.0
 
+      - run:
+          name: install docker-compose
+          command: sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose
+
+      - run:
+          name: install go-task
+          command: curl -sL https://taskfile.dev/install.sh | sh
+
+      - run:
+          name: generate a default key
+          command: yes | ssh-keygen -o -N "" -f ~/.ssh/id_rsa || true
+
+      - run:
+          name: install nomad
+          command: |
+            wget https://releases.hashicorp.com/nomad/0.8.6/nomad_0.8.6_linux_amd64.zip
+            unzip nomad_0.8.6_linux_amd64.zip
+            sudo cp ./nomad /usr/bin/nomad
+            sudo chmod +x /usr/bin/nomad
+
       - run: docker build -t holepunch --build-arg APP_NAME=holepunch .
 
       - run:
           name: Start container
           command: |
             set -x
+            docker login -u $DOCKER_USER -p $DOCKER_PASS
             docker-compose up -d
+          environment:
+            FLASK_APP: app:create_app('test')
+            SEA_HOST: nomad
 
       - run:
           name: Wait for db
@@ -52,13 +76,14 @@ jobs:
       - run:
           name: Setup holepunch
           command: |
-            ./hpsetup.sh
+            ./bin/task setup_db
+            ./bin/task setup_tun
 
       - run:
           name: Run Unit Tests
           command: |
             set -x
-            docker-compose exec web pytest --cov-report xml
+            docker-compose run web pytest --cov-report xml
 
       - run:
           name: Docker-compose down

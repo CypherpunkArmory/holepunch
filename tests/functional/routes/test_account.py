@@ -1,16 +1,15 @@
 from tests.factories.user import UnconfirmedUserFactory, UserFactory
 from app.models import User, Subdomain, Tunnel
-from tests.factories import user, subdomain, tunnel
+from tests.factories import subdomain, tunnel
 from unittest import mock
 from app.services import authentication
 import re
 import jwt
-import os
 import requests
 
 
 class TestAccount(object):
-    @mock.patch("app.services.user.send_confirm_email.queue")
+    @mock.patch("app.services.user.user_notification_service.send_confirm_email.queue")
     def test_obtain_email_confirm_token(
         self, send_confirm_email, unauthenticated_client, session
     ):
@@ -35,7 +34,9 @@ class TestAccount(object):
         assert email == "forgetful@gmail.com"
         assert re.match("http://localhost:5000/account/confirm(.*)", token)
 
-    @mock.patch("app.services.user.send_password_reset_confirm_email.queue")
+    @mock.patch(
+        "app.services.user.user_notification_service.send_password_reset_confirm_email.queue"
+    )
     def test_obtain_a_password_reset_token(
         self, password_reset_email, unauthenticated_client, session
     ):
@@ -60,7 +61,9 @@ class TestAccount(object):
         assert email == "forgetful@gmail.com"
         assert re.match("http://localhost:5000/account/confirm(.*)", token)
 
-    @mock.patch("app.services.user.send_password_reset_confirm_email.queue")
+    @mock.patch(
+        "app.services.user.user_notification_service.send_password_reset_confirm_email.queue"
+    )
     def test_returns_200_for_non_existent_user(
         self, password_reset_email, unauthenticated_client
     ):
@@ -78,7 +81,7 @@ class TestAccount(object):
         password_reset_email.assert_not_called()
 
     def test_returns_an_access_token_when_confirming_a_password_reset_token(
-        self, unauthenticated_client
+        self, app, unauthenticated_client
     ):
         """Returns an access_token JWT when confirms a password_reset token """
         token = authentication.encode_token(
@@ -90,7 +93,7 @@ class TestAccount(object):
         json_response = res.get_json()
         assert "access_token" in json_response
         assert "refresh_token" not in json_response
-        assert jwt.decode(json_response["access_token"], os.getenv("JWT_SECRET_KEY"))[
+        assert jwt.decode(json_response["access_token"], app.config["JWT_SECRET_KEY"])[
             "user_claims"
         ]["scopes"] == ["update:user:new_password"]
 
@@ -123,7 +126,7 @@ class TestAccount(object):
             },
         )
 
-        assert res.status_code == 204
+        assert res.status_code == 204, res.get_json()
 
     def test_register_with_taken_email(self, unauthenticated_client, session):
         """Post to register url with taken email fails"""
@@ -142,9 +145,11 @@ class TestAccount(object):
             },
         )
 
-        assert res.status_code == 422
+        assert res.status_code == 422, res.get_json()
 
-    @mock.patch("app.services.user.send_password_change_confirm_email.queue")
+    @mock.patch(
+        "app.services.user.user_notification_service.send_password_change_confirm_email.queue"
+    )
     def test_change_password_with_correct_credentials(
         self, password_changed_email, client, current_user
     ):
@@ -166,7 +171,9 @@ class TestAccount(object):
         assert user.check_password("abc123") is True
         password_changed_email.assert_called_once()
 
-    @mock.patch("app.services.user.send_password_change_confirm_email.queue")
+    @mock.patch(
+        "app.services.user.user_notification_service.send_password_change_confirm_email.queue"
+    )
     def test_change_password_with_incorrect_password(
         self, password_changed_email, client, current_user
     ):
@@ -190,7 +197,9 @@ class TestAccount(object):
         assert user.check_password("abc123") is False
         password_changed_email.assert_not_called()
 
-    @mock.patch("app.services.user.send_email_change_confirm_email.queue")
+    @mock.patch(
+        "app.services.user.user_notification_service.send_email_change_confirm_email.queue"
+    )
     def test_change_email_with_correct_credentials(
         self, email_changed_email, client, current_user
     ):
@@ -219,7 +228,9 @@ class TestAccount(object):
                 r.close()
                 break
 
-    @mock.patch("app.services.user.send_email_change_confirm_email.queue")
+    @mock.patch(
+        "app.services.user.user_notification_service.send_email_change_confirm_email.queue"
+    )
     def test_change_email_to_existing_email(
         self, email_changed_email, client, current_user, session
     ):
@@ -287,7 +298,7 @@ class TestAccount(object):
         assert Subdomain.query.filter_by(id=sub1.id).first() is None
         assert Tunnel.query.filter_by(job_id=tun1.job_id).first() is None
 
-    def test_revoke_tokens(self, current_user, client, unauthenticated_client):
+    def test_revoke_tokens(self, app, current_user, client, unauthenticated_client):
         """Delete to /account/token url returns a 204 on success and bearer token no longer works"""
         res = unauthenticated_client.post(
             "/login", json={"email": current_user.email, "password": "123123"}
@@ -296,13 +307,13 @@ class TestAccount(object):
         json_response = res.get_json()
 
         old_uuid = jwt.decode(
-            json_response["access_token"], os.getenv("JWT_SECRET_KEY")
+            json_response["access_token"], app.config["JWT_SECRET_KEY"]
         )["identity"]
         res2 = client.delete("/account/token")
         assert res2.status_code == 204
 
         res3 = client.get("/subdomains")
-        assert res3.status_code == 404
+        assert res3.status_code == 404, res3.get_json()
 
         res4 = unauthenticated_client.post(
             "/login", json={"email": current_user.email, "password": "123123"}
@@ -311,6 +322,6 @@ class TestAccount(object):
         json_response = res4.get_json()
 
         new_uuid = jwt.decode(
-            json_response["access_token"], os.getenv("JWT_SECRET_KEY")
+            json_response["access_token"], app.config["JWT_SECRET_KEY"]
         )["identity"]
         assert new_uuid != old_uuid

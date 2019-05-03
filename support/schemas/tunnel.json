@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "tunnel",
+  "$id": "tunnel.json",
   "definitions": {
     "tunnel": {
       "allOf": [

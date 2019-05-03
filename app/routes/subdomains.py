@@ -1,4 +1,4 @@
-from flask import Blueprint, Response, request
+from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from jsonschema import ValidationError
 from sqlalchemy.orm.exc import NoResultFound
@@ -77,7 +77,7 @@ def subdomain_release(subdomain_id):
 
 @subdomain_blueprint.route("/subdomains/<int:subdomain_id>", methods=["GET"])
 @jwt_required
-def get_subdomain(subdomain_id) -> Response:
+def get_subdomain(subdomain_id):
     """
     Stop a currently running subdomain
     """

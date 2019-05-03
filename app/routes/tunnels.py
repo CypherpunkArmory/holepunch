@@ -2,7 +2,7 @@
 Provides CRUD operations for Tunnel Resources
 """
 
-from flask import Blueprint, request, Response
+from flask import Blueprint, request, Response, make_response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from jsonschema import ValidationError
 from sqlalchemy.orm.exc import NoResultFound
@@ -20,13 +20,15 @@ from app.utils.errors import (
     TunnelError,
 )
 from app.utils.json import dig, json_api
+from typing import Tuple
+
 
 tunnel_blueprint = Blueprint("tunnel", __name__)
 
 
 @tunnel_blueprint.route("/tunnels", methods=["GET"])
 @jwt_required
-def tunnel_index() -> Response:
+def tunnel_index() -> Tuple[Response, int]:
     """
     Fetch index of a users current tunnels
     """
@@ -36,15 +38,12 @@ def tunnel_index() -> Response:
     if name:
         tunnels = tunnels.join(Subdomain).filter(Subdomain.name == name)
 
-    return json_api(tunnels, TunnelSchema, many=True)
+    return json_api(tunnels, TunnelSchema, many=True), 200
 
 
 @tunnel_blueprint.route("/tunnels", methods=["POST"])
 @jwt_required
-def start_tunnel() -> Response:
-    """
-    Start a tunnel for a logged in user, generating a subdomain if necessary
-    """
+def start_tunnel() -> Tuple[Response, int]:
     try:
         json_schema_manager.validate(request.json, "tunnel_create.json")
 
@@ -64,8 +63,8 @@ def start_tunnel() -> Response:
 
         return json_api(tunnel_info, TunnelSchema), 201
 
-    except ValidationError:
-        return json_api(BadRequest, ErrorSchema), 400
+    except ValidationError as e:
+        return json_api(BadRequest(detail=e.message), ErrorSchema), 400
 
     except AccessDenied:
         return json_api(AccessDenied, ErrorSchema), 403
@@ -76,7 +75,7 @@ def start_tunnel() -> Response:
 
 @tunnel_blueprint.route("/tunnels/<int:tunnel_id>", methods=["DELETE"])
 @jwt_required
-def stop_tunnel(tunnel_id) -> Response:
+def stop_tunnel(tunnel_id) -> Tuple[Response, int]:
     """
     Stop a currently running tunnel
     """
@@ -88,14 +87,14 @@ def stop_tunnel(tunnel_id) -> Response:
 
     try:
         TunnelDeletionService(current_user, tunnel).delete()
-        return "", 204
+        return make_response(""), 204
     except NoResultFound:
         return json_api(NotFoundError, ErrorSchema), 404
 
 
 @tunnel_blueprint.route("/tunnels/<int:tunnel_id>", methods=["GET"])
 @jwt_required
-def get_tunnel(tunnel_id) -> Response:
+def get_tunnel(tunnel_id) -> Tuple[Response, int]:
     """
     Retrieve Tunnel Resource
     """
@@ -106,6 +105,6 @@ def get_tunnel(tunnel_id) -> Response:
     tunnel = Tunnel.query.filter_by(user=current_user, id=tunnel_id).first_or_404()
 
     try:
-        return json_api(tunnel, TunnelSchema)
+        return json_api(tunnel, TunnelSchema), 200
     except NoResultFound:
         return json_api(NotFoundError, ErrorSchema), 404

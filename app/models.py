@@ -1,11 +1,10 @@
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import types
 from werkzeug import check_password_hash, generate_password_hash
-
 from app import db
 
 
-class Subdomain(db.Model):
+class Subdomain(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False, unique=True)
     reserved = db.Column(db.Boolean)
@@ -17,7 +16,7 @@ class Subdomain(db.Model):
         return "<Subdomain {}>".format(self.name)
 
 
-class User(db.Model):
+class User(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     confirmed = db.Column(db.Boolean)
     email = db.Column(db.String(64), index=True, unique=True)
@@ -38,8 +37,13 @@ class User(db.Model):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
+    def limits(self):
+        import app.services.user as user
 
-class Tunnel(db.Model):
+        return user.get_user_limits(self.tier)
+
+
+class Tunnel(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     port = db.Column(types.ARRAY(types.String()))
     subdomain_id = db.Column(db.Integer, db.ForeignKey("subdomain.id"))

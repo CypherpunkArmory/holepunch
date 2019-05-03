@@ -8,7 +8,33 @@ Visit [holepunch.io](https://holepunch.io) to find out more
 
 # Setting Up
 
+The holepunch nomad cluster requires a loopback alias in order to communicate
+with containers running on the MacOS version of docker.
+
+If you are running on a Mac, you can create this loopback alias at
+172.16.123.1 by running `task setup_net`
+
+If you are running locally, you will need to set the sshendpoint in your `.punch.toml`
+file to this address as well.
+
+This step is not necessary for running on Linux - but you will probably need
+to change the `SEA_HOST` environment variable to your local IP.
+
 1. You will need a dockerhub account to run the app.
 2. Create a virtualenv (using pyenv) called "holepunch" based on Python 3.7.0
-3. Run `hpsetup.sh`
-6. Run the tests  `docker-compose run web pytest`
+3. Install go-task via homebrew
+4. Run `task setup_db setup_net`
+5. Run the tests  `docker-compose run web pytest`
+
+# Common Commands
+
+## Run Flask Shell
+
+`docker-compose run -e "FLASK_APP=app:create_app('development')" web python -m flask shell`
+
+## Exec into a container
+
+Most of the containers do not have bash so you'll need to use regular old sh.
+
+`docker ps` -> note the _container id_
+`docker exec -it <container_id> /bin/sh`

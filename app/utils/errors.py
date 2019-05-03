@@ -52,6 +52,14 @@ class JsonApiException(Exception):
         return error_dict
 
 
+class InternalServerError(JsonApiException):
+    """Raised when there is an error that can't be resolved"""
+
+    title = "InternalServerError"
+    status = "500"
+    detail = "Holepunch has encountered an internal error - please report this at github.com/cypherpunkarmory/holepunch"
+
+
 class TunnelError(JsonApiException):
     """Raised when there is an error creating/deleting a tunnel"""
 

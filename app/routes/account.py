@@ -1,11 +1,9 @@
 from app.services import authentication
-from app.services.user import (
-    UserCreationService,
-    UserUpdateService,
-    UserDeletionService,
-    UserNotificationService,
-    UserTokenService,
-)
+from app.services.user.user_creation_service import UserCreationService
+from app.services.user.user_update_service import UserUpdateService
+from app.services.user.user_deletion_service import UserDeletionService
+from app.services.user.user_notification_service import UserNotificationService
+from app.services.user.user_token_service import UserTokenService
 from app.models import User
 from app.serializers import UserSchema
 from flask import redirect, request, Blueprint, jsonify, url_for
@@ -50,7 +48,6 @@ def create_token():
 
 @account_blueprint.route("/account/confirm/<token>", methods=["GET"])
 def confirm(token):
-
     for salt in token_types:
         uuid = authentication.decode_token(token, salt=salt)
         if salt == "password-reset-salt" and uuid:
@@ -144,8 +141,8 @@ def register_user():
         ).create()
 
         return json_api(user, UserSchema), 204
-    except UserError:
-        return json_api(UnprocessableEntity, ErrorSchema), 422
+    except UserError as e:
+        return json_api(UnprocessableEntity(detail=e.detail), ErrorSchema), 422
     except ValidationError as e:
         return json_api(BadRequest(source=e.message), ErrorSchema), 400
 
