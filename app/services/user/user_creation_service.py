@@ -11,18 +11,18 @@ class UserCreationService:
         self.password = attrs.pop("password")
 
     def create(self) -> User:
-        try:
-            new_user = User(
-                email=self.email,
-                confirmed=False,
-                tier=self.get_user_tier(),
-                uuid=str(uuid.uuid4()),
-            )
-            new_user.set_password(self.password)
-            db.session.add(new_user)
-            db.session.flush()
-        except IntegrityError:
+        if User.query.filter_by(email=self.email).first():
             raise UserError(detail="There is already a user with this email")
+
+        new_user = User(
+            email=self.email,
+            confirmed=False,
+            tier=self.get_user_tier(),
+            uuid=str(uuid.uuid4()),
+        )
+        new_user.set_password(self.password)
+        db.session.add(new_user)
+        db.session.flush()
 
         return new_user
 

@@ -147,6 +147,29 @@ class TestAccount(object):
 
         assert res.status_code == 422, res.get_json()
 
+    @mock.patch("app.services.user.user_notification_service.send_confirm_email.queue")
+    def test_register_with_existing_account_no_email_sent(
+        self, send_confirm_email, unauthenticated_client, session
+    ):
+        """Attempting to register with an already existing account should not send an email confirm email"""
+
+        user = UserFactory(email="test@example.com")
+        session.add(user)
+        session.flush()
+
+        res = unauthenticated_client.post(
+            "/account",
+            json={
+                "data": {
+                    "type": "user",
+                    "attributes": {"email": "test@example.com", "password": "123123"},
+                }
+            },
+        )
+
+        assert res.status_code == 422
+        send_confirm_email.assert_not_called()
+
     @mock.patch(
         "app.services.user.user_notification_service.send_password_change_confirm_email.queue"
     )
