@@ -145,7 +145,7 @@ EOH
 
       template {
         data = <<EOH
-{{ with secret "secret/fabio/certs/api.holepunch.io" }}
+{{ with secret "secret/certs/api.holepunch.io" }}
 {{ .Data.cert }}
 {{ end }}
 EOH
@@ -155,7 +155,7 @@ EOH
 
       template {
         data = <<EOH
-{{ with secret "secret/fabio/certs/api.holepunch.io" }}
+{{ with secret "secret/certs/api.holepunch.io" }}
 {{ .Data.key }}
 {{ end }}
 EOH

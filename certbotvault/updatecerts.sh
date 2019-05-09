@@ -43,20 +43,12 @@ check_errs $? "certbot cert update errored"
 
 # Store result in vault
 
-if [ "${CERTPATH+1}" ]; then
-  vault kv put ${CERTPATH} key=@/etc/letsencrypt/live/orbtestenv.net/privkey.pem
-  check_errs $? "vault put errored for private key"
-else
-  echo "CERTPATH not set"
-  exit 1 
-fi
+  vault kv put secret/certs/${DOMAIN} key=@/etc/letsencrypt/live/${DOMAIN}/cert.pem key=@/etc/letsencrypt/live/${DOMAIN}/privkey.pem
+  check_errs $? "vault put errored for cert"
 
-if [ "${CHAINPATH+1}" ]; then
-  vault kv put ${CHAINPATH} key=@/etc/letsencrypt/live/orbtestenv.net/fullchain.pem
+  vault kv put secret/certs/${DOMAIN}.fullchain key=@/etc/letsencrypt/live/${DOMAIN}/fullchain.pem
+  check_errs $? "vault put errored for fullchain"
+
+    vault kv put secret/certs/${DOMAIN}.chain key=@/etc/letsencrypt/live/${DOMAIN}/chain.pem
   check_errs $? "vault put errored for chain"
-else
-  echo "CHAINPATH not set"
-  exit 1 
-fi
-
 

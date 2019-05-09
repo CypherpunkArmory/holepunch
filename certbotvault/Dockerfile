@@ -10,21 +10,13 @@ RUN unzip vault.zip -d /usr/bin
 
 COPY ./updatecerts.sh /usr/bin/updatecerts.sh
 
-#Expects the following ENVs
-# VAULT_ADDR="http://vault:8200"
-# ADMINEMAIL="someone@somedomain.tech"
-# DOMAIN="awsroute53updateabledoamin.com"
-# CERTPATH="pathInVaultToStoreCert"
-# CHAINPATH="pathInVaultToStoreCert"
-
-
+# environment variables
+# AWS_ACCESS_KEY_ID  (issued by vault for aws route 53 access)
+# AWS_SECRET_ACCESS_KEY  (issued by vault for aws route 53 access)
+# ADMINEMAIL Defined in Nomad job
+# DOMAIN Defined in Nomad job
+# VAULT_ADDR  Defined in Nomad job
+# VAULT_TOKEN  (passed in by Nomad)
 
 
 CMD /usr/bin/updatecerts.sh
-
-#certbot certonly \
-#  -n --agree-tos --email andrew@userland.tech \
-#  --dns-route53 \
-#  -d orbtestenv.net
-
-#  sudo certbot certonly --standalone -d example.com -d www.example.com
