@@ -1,0 +1,36 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "user_delete.json",
+    "definitions": {
+        "user": {
+            "allOf": [
+                {
+                    "$ref": "json-api.json#/definitions/post_data"
+                },
+                {
+                    "properties": {
+                        "attributes": {
+                            "required": [
+                                "password"
+                            ],
+                            "properties": {
+                                "password": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "type": "object",
+    "required": [
+        "data"
+    ],
+    "properties": {
+        "data": {
+            "$ref": "#/definitions/user"
+        }
+    }
+}

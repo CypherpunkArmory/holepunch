@@ -319,7 +319,10 @@ class TestAccount(object):
 
     def test_account_delete_with_correct_credentials(self, client, current_user):
         """DELETE to /account url succeeds and account no longer exists"""
-        res = client.delete("/account")
+        res = client.delete(
+            "/account",
+            json={"data": {"type": "user", "attributes": {"password": "123123"}}},
+        )
         user = User.query.filter_by(uuid=current_user.uuid).first()
 
         assert res.status_code is 200
@@ -335,9 +338,12 @@ class TestAccount(object):
 
         assert Subdomain.query.filter_by(id=sub1.id).first() is not None
 
-        delete_res = client.delete("/account")
+        res = client.delete(
+            "/account",
+            json={"data": {"type": "user", "attributes": {"password": "123123"}}},
+        )
 
-        assert delete_res.status_code is 200
+        assert res.status_code is 200
         assert User.query.filter_by(uuid=current_user.uuid).first() is None
         assert Subdomain.query.filter_by(id=sub1.id).first() is None
 
@@ -354,7 +360,10 @@ class TestAccount(object):
         assert Subdomain.query.filter_by(id=sub1.id).first() is not None
         assert Tunnel.query.filter_by(job_id=tun1.job_id).first() is not None
 
-        res = client.delete("/account")
+        res = client.delete(
+            "/account",
+            json={"data": {"type": "user", "attributes": {"password": "123123"}}},
+        )
 
         assert res.status_code is 200
         assert User.query.filter_by(uuid=current_user.uuid).first() is None

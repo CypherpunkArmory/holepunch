@@ -117,9 +117,13 @@ def delete_user():
     """ Delete an existing User Record"""
 
     try:
+        json_schema_manager.validate(request.json, "user_delete.json")
         current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
 
-        service = UserDeletionService(current_user, scopes=authentication.jwt_scopes())
+        attributes = dig(request.json, "data/attributes", None)
+        service = UserDeletionService(
+            current_user, scopes=authentication.jwt_scopes(), **attributes
+        )
         entries_deleted = service.delete()
 
         return json_api(entries_deleted, UserSchema), 200
