@@ -170,6 +170,46 @@ class TestAccount(object):
         assert res.status_code == 422
         send_confirm_email.assert_not_called()
 
+    @mock.patch("app.services.user.user_notification_service.send_confirm_email.queue")
+    def test_email_confirm_token_with_non_existing_account_no_email_sent(
+        self, send_confirm_email, unauthenticated_client, session
+    ):
+        """Attempting to request a email confirm token with an email that is not registered yet should not send an email"""
+
+        res = unauthenticated_client.post(
+            "/account/token",
+            json={
+                "data": {
+                    "type": "email_confirm",
+                    "attributes": {"email": "fake@faker.com"},
+                }
+            },
+        )
+
+        assert res.status_code == 200
+        send_confirm_email.assert_not_called()
+
+    @mock.patch(
+        "app.services.user.user_notification_service.send_password_reset_confirm_email.queue"
+    )
+    def test_password_reset_token_with_non_existing_account_no_email_sent(
+        self, send_password_reset_confirm_email, unauthenticated_client, session
+    ):
+        """Attempting to request a password reset token with an email that is not registered yet should not send an email"""
+
+        res = unauthenticated_client.post(
+            "/account/token",
+            json={
+                "data": {
+                    "type": "password_reset",
+                    "attributes": {"email": "nobody123@noone.com"},
+                }
+            },
+        )
+
+        assert res.status_code == 200
+        send_password_reset_confirm_email.assert_not_called()
+
     @mock.patch(
         "app.services.user.user_notification_service.send_password_change_confirm_email.queue"
     )
