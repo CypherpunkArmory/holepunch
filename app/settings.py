@@ -38,6 +38,8 @@ class TestConfig(Config):
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
 
+    CONFIRM_URL = os.environ.get("CONFIRM_URL")
+
     PRESERVE_CONTEXT_ON_EXCEPTION = False
 
 
@@ -70,6 +72,8 @@ class DevelopmentConfig(Config):
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
 
+    CONFIRM_URL = os.environ.get("CONFIRM_URL")
+
 
 class ProductionConfig(Config):
     """
@@ -99,6 +103,8 @@ class ProductionConfig(Config):
     DNS_ADDR = os.environ.get("DNS_ADDR", default="172.17.0.1")
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
+
+    CONFIRM_URL = os.environ.get("CONFIRM_URL")
 
 
 app_config = {

@@ -7,7 +7,7 @@ from app.jobs.email import (
     send_email_change_confirm_email,
 )
 from app.services.authentication import encode_token
-from flask import url_for
+from flask import current_app
 
 
 class UserNotificationService:
@@ -52,4 +52,4 @@ class UserNotificationService:
 
     def generate_confirmation_url(self, salt):
         token = encode_token(self.user.uuid, salt)
-        return url_for("account.confirm", token=token, _external=True)
+        return current_app.config["CONFIRM_URL"].format(token)
