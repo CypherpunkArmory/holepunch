@@ -1,5 +1,7 @@
 FROM rastasheep/ubuntu-sshd:18.04
 
+RUN apt update
+
 RUN sed -i 's/PermitRootLogin yes/PermitRootLogin no/g' /etc/ssh/sshd_config
 
 RUN echo "GatewayPorts yes" >> /etc/ssh/sshd_config && \
@@ -13,10 +15,15 @@ RUN useradd -m -s /usr/sbin/nologin punch && \
   chmod 0700 /home/punch/.ssh && \
   touch /home/punch/.ssh/authorized_keys && \
   chown punch:punch /home/punch/.ssh/authorized_keys && \
-  chmod 0600 /home/punch/.ssh/authorized_keys
+  chmod 0600 /home/punch/.ssh/authorized_keys && \
+  echo "punch:*" | chpasswd -e
 
-RUN apt update && apt -y install trickle
+RUN apt -y install trickle
 
-ADD deploy/run_with_trickle.sh /run_with_trickle.sh
+RUN echo '#!/bin/sh\n\
+echo $SSH_KEY > /home/punch/.ssh/authorized_keys\n\
+exec trickle -s -u $BANDWIDTH -d $BANDWIDTH /usr/sbin/sshd -D'\
+>> /run_with_trickle.sh
+
 RUN chmod +x /run_with_trickle.sh
-CMD ["/run_with_trickle.sh"]
+ENTRYPOINT ["/run_with_trickle.sh"]

@@ -38,3 +38,19 @@ Most of the containers do not have bash so you'll need to use regular old sh.
 
 `docker ps` -> note the _container id_
 `docker exec -it <container_id> /bin/sh`
+
+
+# Deploying Holepunch
+
+Contributors and Holepunch Developers
+
+1. Spin up a pushbutton environment using Grid.
+2. Login to the Pushbutton VPN
+3. Cd into the deploy directory and create a holepunch workspace with the _same
+   name_ as your Pusbutton
+4. Push a release to Docker Hub - for development it will deploy a tag with
+   your branch name.  If you're on master, it will create a tag release.
+5. task deploy WORKSPACE=<your workspace name>
+  - If you are on master it will create new tags incremented by 0.0.1 and
+    release those
+  - You can specify a version using the VER variable.

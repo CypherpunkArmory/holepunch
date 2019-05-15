@@ -112,7 +112,7 @@ services:
     volumes:
       - "/tmp:/tmp"
       - "/tmp/nomad/data:/tmp/nomad/data"
-      - "./ssh.hcl:/ssh.hcl"
+      - "./local_ssh.hcl:/ssh.hcl"
       - "/var/run/docker.sock:/var/run/docker.sock"
     command: agent -dev -bind=0.0.0.0 -consul-address=consul:8500 -consul-auto-advertise=0
 

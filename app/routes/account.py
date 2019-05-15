@@ -37,9 +37,7 @@ def create_token():
             uns.password_reset_email()
 
     except ValidationError as e:
-        return json_api(BadRequest(source=e.message), ErrorSchema), 401
-    except TypeError:
-        return json_api(BadRequest, ErrorSchema), 401
+        return json_api(BadRequest(source=e.message), ErrorSchema), 400
     except NotFound:
         return "", 200
 

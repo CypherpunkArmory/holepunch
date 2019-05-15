@@ -2,17 +2,10 @@ import dns.resolver
 import dns.name
 import dns.rdatatype
 import random
-import os
+from flask import current_app
+from functools import lru_cache
 
 from typing import Iterator, NamedTuple, List
-
-
-resolver = dns.resolver.Resolver(configure=False)
-resolver.nameservers = [os.environ.get("DNS_ADDR")]
-resolver.search = [
-    dns.name.from_text("service.city.consul"),
-    dns.name.from_text("service.consul"),
-]
 
 
 class Entry(NamedTuple):
@@ -21,6 +14,18 @@ class Entry(NamedTuple):
 
 
 class Service:
+    @staticmethod
+    @lru_cache()
+    def resolver():
+        resolver = dns.resolver.Resolver(configure=False)
+        resolver.nameservers = [current_app.config["DNS_ADDR"]]
+        resolver.search = [
+            dns.name.from_text("service.city.consul"),
+            dns.name.from_text("service.consul"),
+        ]
+
+        return resolver
+
     def __init__(self, response):
         self.response = response
         self._parse_response()
@@ -74,5 +79,5 @@ class Service:
 
 
 def discover_service(service_name: str) -> Service:
-    answer = resolver.query(service_name, "SRV")
+    answer = Service.resolver().query(service_name, "SRV")
     return Service(answer.response)

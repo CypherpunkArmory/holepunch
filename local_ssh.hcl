@@ -57,7 +57,7 @@ job "ssh-client" {
         port = "http"
 
         check {
-          name = "http-${NOMAD_META_BOX_NAME}-up"
+          name = "http-$${NOMAD_META_BOX_NAME}-up"
           address_mode = "driver"
           port = "http"
           type = "tcp"

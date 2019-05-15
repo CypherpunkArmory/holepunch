@@ -7,7 +7,7 @@ from app.utils.errors import AccessDenied
 
 def encode_token(uuid, salt="default-salt"):
     serializer = URLSafeTimedSerializer(current_app.config["JWT_SECRET_KEY"])
-    return serializer.dumps(uuid, salt)
+    return serializer.dumps(str(uuid), salt)
 
 
 def decode_token(token, salt="default-salt", expiration=3600):

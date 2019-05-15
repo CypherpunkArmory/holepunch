@@ -7,7 +7,7 @@ Create Date: 2019-04-22 14:39:17.330526
 """
 from alembic import op
 import sqlalchemy as sa
-import uuid
+from sqlalchemy.dialects.postgresql import UUID
 
 
 # revision identifiers, used by Alembic.
@@ -18,14 +18,16 @@ depends_on = None
 
 
 def upgrade():
+    conn = op.get_bind()
+    conn.execute(sa.text('create extension if not exists "uuid-ossp";'))
     op.add_column(
         "user",
         sa.Column(
             "uuid",
-            sa.String(length=64),
+            UUID(as_uuid=True),
             nullable=False,
             unique=True,
-            server_default=str(uuid.uuid4()),
+            server_default=sa.text("uuid_generate_v4()"),
         ),
     )
     pass

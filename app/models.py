@@ -2,6 +2,7 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy import types
 from werkzeug import check_password_hash, generate_password_hash
 from app import db
+from sqlalchemy.dialects.postgresql import UUID
 
 
 class Subdomain(db.Model):  # type: ignore
@@ -22,7 +23,7 @@ class User(db.Model):  # type: ignore
     email = db.Column(db.String(64), index=True, unique=True)
     password_hash = db.Column(db.String(128))
     tier = db.Column(db.String(64), nullable=False)
-    uuid = db.Column(db.String(64), nullable=False, unique=True)
+    uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True)
     subdomains = db.relationship(
         "Subdomain", back_populates="user", lazy="dynamic", cascade="all, delete"
     )

@@ -12,3 +12,4 @@ tests
 .cache/
 .idea/
 htmlcov/
+deploy/

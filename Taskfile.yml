@@ -26,8 +26,8 @@ tasks:
     desc: Build a development SSH container and schedule it on the local nomad
     cmds:
       - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:develop .
-      - NOMAD_ADDR=http://127.0.0.1:4646 nomad job run deploy/ssh.hcl
-
+      - docker-compose up -d nomad
+      - docker-compose run nomad job run /ssh.hcl
 
   clean_tunnels:
     prefix: 'clean'
@@ -55,33 +55,78 @@ tasks:
     prefix: 'release-ssh'
     desc: Release a new version of the SSH Container
     vars:
-      VER: next
-      BRANCH: master
+      VER: '{{ default "next" .VER }}'
       NEXT_TAG:
-        sh: if [ "{{.VER}}" = "next" ]; then git describe --abbrev=0 --tags --match "ssh*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3+1}'; else echo "{{.VER}}"; fi
+        sh: |
+          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            git describe --abbrev=0 --tags --match "ssh*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3+1}';
+          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            echo "{{.VER}}";
+          else
+            git rev-parse --abbrev-ref HEAD
+          fi
     cmds:
-      - (test $(git rev-parse --abbrev-ref HEAD) = {{.BRANCH}}) || (echo "Release from master only!"; exit 1)
-      - host nomad || (echo "Couldn't find nomad host - are you on the VPN?"; exit 1)
-      - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:{{.NEXT_TAG}}
+      - echo "Updating SSH from {{.RELEASED_TAG}} to {{.NEXT_TAG}}"
+      - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:{{.NEXT_TAG}} .
       - docker push cypherpunkarmory/sshd:{{.NEXT_TAG}}
-      - if [ "{{.BRANCH}}" = "master"]; then git tag {{.NEXT_TAG}}; git push origin {{.NEXT_TAG}}; fi
-      - cat deploy/ssh.hcl | sed 's/cypherpunkarmory/sshd:develop/cypherpunkarmory/sshd:{{.NEXT_TAG}}' | sed 's/network_mode.*//' | NOMAD_ADDR=http://nomad:4646 nomad job run -
+      - if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then git tag holepunch-{{.NEXT_TAG}}; git push origin holepunch-{{.NEXT_TAG}}; fi
 
   release:
     prefix: 'release'
     desc: Push a holepunch release to nomad.
     vars:
-      VER: next
-      BRANCH: master
+      VER: '{{ default "next" .VER }}'
       NEXT_TAG:
-        sh: if [ "{{.VER}}" = "next" ]; then git describe --abbrev=0 --tags --match "holepunch*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3+1}'; else echo "{{.VER}}"; fi
+        sh: |
+          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            git describe --abbrev=0 --tags --match "holepunch*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3+1}';
+          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            echo "{{.VER}}";
+          else
+            git rev-parse --abbrev-ref HEAD
+          fi
     cmds:
-      - (test $(git rev-parse --abbrev-ref HEAD) = {{.BRANCH}}) || (echo "Release from master only!"; exit 1)
-      - host nomad || (echo "Couldn't find nomad host - are you on the VPN?"; exit 1)
-      - echo "Updating from {{.RELEASED_TAG}} to {{.NEXT_TAG}}"
+      - echo "Updating API from {{.RELEASED_TAG}} to {{.NEXT_TAG}}"
       - docker build --build-arg APP_NAME=holepunch -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
-      - docker push cypherpunkarmory/holepunch:{{.NEXT_TAG}}
-      - if [ "{{.BRANCH}}" = "master"]; then git tag {{.NEXT_TAG}}; git push origin {{.NEXT_TAG}}; fi
-      - cat deploy/holepunch.hcl | sed 's/cypherpunkarmory/holepunch-production:develop/cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}' | NOMAD_ADDR=http://nomad:4646 nomad job run -
+      - docker push cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}
+      - if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then git tag holepunch-{{.NEXT_TAG}}; git push origin holepunch-{{.NEXT_TAG}}; fi
 
+  deploy:
+    prefix: 'deploy'
+    desc: Deploy the holepunch app
+    dir: deploy
+    vars:
+      WORKSPACE: '{{ default "prod" .WORKSPACE }}'
+      VER: '{{ default "next" .VER }}'
+      ANSIBLE_VAULT_PATH:
+        sh: echo $ANSIBLE_VAULT_PATH
+      ROOT_TOKEN:
+        sh: cat {{.ANSIBLE_VAULT_PATH}}/{{.WORKSPACE}}/vault_recovery | awk '/Initial Root Token:(.*?)/{print $4}'
+      GIT_BRANCH:
+        sh: git rev-parse --abbrev-ref HEAD
+      HP_TAG:
+        sh: |
+          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            git describe --abbrev=0 --tags --match "holepunch*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3+1}';
+          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            echo "{{.VER}}";
+          else
+            git rev-parse --abbrev-ref HEAD
+          fi
+      SSH_TAG:
+        sh: |
+          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            git describe --abbrev=0 --tags --match "ssh*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3+1}';
+          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            echo "{{.VER}}";
+          else
+            git rev-parse --abbrev-ref HEAD
+          fi
+    cmds:
+      - (test -n "{{.ANSIBLE_VAULT_PATH}}") || (echo "ANSIBLE_VAULT_PATH must be set"; exit 1)
+      - VAULT_ADDR=http://vault.service.city.consul:8200 vault login {{.ROOT_TOKEN}}
+      - terraform plan -var "ssh_deploy_version={{.SSH_TAG}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "planfile"
+      - echo "$(tput setaf 1)Waiting for cancellation. Ctrl-C now or forever hold your peace!$(tput sgr0)"
+      - sleep 10
+      - terraform apply "planfile"
 

@@ -25,9 +25,9 @@ from app.utils.json import JSONSchemaManager, json_api
 # file in production and boot the app correctly
 if os.getenv("FLASK_ENV") == "production":
     load_dotenv("/holepunch/.env.production")
-    from ddtrace import patch
+    from ddtrace import patch_all
 
-    patch(flask=True, psycopg=True)
+    patch_all()
 
 
 def load_corpus():

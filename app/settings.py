@@ -31,10 +31,10 @@ class TestConfig(Config):
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    BASE_SERVICE_URL = os.environ.get("BASE_SERVICE_URL", default="configfailed")
+    BASE_SERVICE_URL = os.environ.get("BASE_SERVICE_URL", default="holepunch.box")
     SEA_HOST = os.environ.get("SEA_HOST", default="nomad")
-    SERVER_NAME = os.environ.get("SERVER_NAME", default="configfailed")
     DNS_ADDR = os.environ.get("DNS_ADDR", default="127.0.0.53")
+    SERVER_NAME = "localhost:5000"
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
 
@@ -64,10 +64,9 @@ class DevelopmentConfig(Config):
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    BASE_SERVICE_URL = os.environ.get("BASE_SERVICE_URL", default="configfailed")
+    BASE_SERVICE_URL = os.environ.get("BASE_SERVICE_URL", default="holepunch.box")
     SEA_HOST = os.environ.get("SEA_HOST", default="0.0.0.0")
     DNS_ADDR = os.environ.get("DNS_ADDR", default="172.17.0.1")
-    SERVER_NAME = os.environ.get("SERVER_NAME", default="configfailed")
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
 
@@ -95,10 +94,9 @@ class ProductionConfig(Config):
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
-    BASE_SERVICE_URL = os.environ.get("BASE_SERVICE_URL", default="configfailed")
+    BASE_SERVICE_URL = os.environ.get("BASE_SERVICE_URL", default="holepunch.io")
     SEA_HOST = os.environ.get("SEA_HOST", default="nomad")
-    DNS_ADDR = os.environ.get("DNS_ADDR", default="127.0.0.53")
-    SERVER_NAME = os.environ.get("SERVER_NAME", default="configfailed")
+    DNS_ADDR = os.environ.get("DNS_ADDR", default="172.17.0.1")
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
 

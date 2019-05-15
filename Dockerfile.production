@@ -18,4 +18,12 @@ EXPOSE 5000
 
 ENV FLASK_APP "app:create_app('production')"
 
-ENTRYPOINT "${APP_HOME}/deploy/start.sh"
+RUN echo '#!/usr/bin/env bash\n\
+cd /holepunch\n\
+flask db upgrade\n\
+exec gunicorn --ca-certs=/secrets/chain.pem --certfile=/secrets/cert.pem --keyfile=/secrets/key.pem -b :5000 --pythonpath /holepunch --access-logfile - --error-logfile - "app:create_app('\''production'\'')"'\
+>> /${APP_HOME}/start.sh
+
+RUN chmod +x ${APP_HOME}/start.sh
+ENTRYPOINT "/${APP_HOME}/start.sh"
+
