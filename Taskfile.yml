@@ -9,9 +9,14 @@ tasks:
     prefix: 'setup_db'
     desc: Setup Database
     cmds:
+      - docker-compose stop db
+      - docker-compose rm -f db
+      - docker volume rm holepunch_postgres || :
+      - docker-compose up -d db
+      - sleep 1
       - docker-compose exec db createdb -U postgres holepunch_development
       - docker-compose exec db createdb -U postgres holepunch_test
-      - docker-compose exec web flask db upgrade
+      - docker-compose run web flask db upgrade
 
   setup_net:
     prefix: 'setup_net'
@@ -39,8 +44,10 @@ tasks:
   add_host:
     prefix: 'add_host'
     desc: Add a domain to your hosts file so you can test
+    precondition:
+      - sh: "[ '{{.DOMAIN}}' != '<no value>' ]"
+        msg: "DOMAIN must be set"
     cmds:
-      - (test -n "{{.DOMAIN}}") || (echo "DOMAIN is required"; exit 1)
       - sudo sh -lc 'echo "127.0.0.1	{{.DOMAIN}}" >> /private/etc/hosts'
 
   start_test_server:
@@ -51,11 +58,14 @@ tasks:
     cmds:
       - "docker run -p {{.LISTEN_PORT}}:80 -e GUNICORN_CMD_ARGS=\"--capture-output --error-logfile - --access-logfile - --access-logformat '%(h)s %(t)s %(r)s %(s)s Host: %({Host}i)s}'\" kennethreitz/httpbin"
 
+
   release-ssh:
     prefix: 'release-ssh'
-    desc: Release a new version of the SSH Container
+    desc: Push an SSH container release to Dockerhub
     vars:
       VER: '{{ default "next" .VER }}'
+      RELEASED_TAG:
+        sh: git describe --abbrev=0 --tags --match "ssh-*"
       NEXT_TAG:
         sh: |
           if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
@@ -65,17 +75,30 @@ tasks:
           else
             git rev-parse --abbrev-ref HEAD
           fi
+    sources:
+      - Dockerfile.ssh
+    method: none
+    precondition:
+      - sh: git describe --abbrev=0 --tags --match "ssh-*"
+        msg: "No tags matching ssh- found"
+      - sh: |
+          if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
+            test -z $(git tag --points-at HEAD | grep 'ssh');
+          fi
+        msg: "This commit is already tagged for ssh"
     cmds:
-      - echo "Updating SSH from {{.RELEASED_TAG}} to {{.NEXT_TAG}}"
-      - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:{{.NEXT_TAG}} .
-      - docker push cypherpunkarmory/sshd:{{.NEXT_TAG}}
-      - if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then git tag holepunch-{{.NEXT_TAG}}; git push origin holepunch-{{.NEXT_TAG}}; fi
+      - echo "Updating API from {{.RELEASED_TAG}} to ssh-{{.NEXT_TAG}}"
+      - docker build --build-arg APP_NAME=holepunch -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
+      - docker push cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}
+      - if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then git tag ssh-{{.NEXT_TAG}}; git push origin ssh-{{.NEXT_TAG}}; fi
 
   release:
     prefix: 'release'
-    desc: Push a holepunch release to nomad.
+    desc: Push a holepunch release to Dockerhub
     vars:
       VER: '{{ default "next" .VER }}'
+      RELEASED_TAG:
+        sh: git describe --abbrev=0 --tags --match "holepunch-*"
       NEXT_TAG:
         sh: |
           if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
@@ -85,8 +108,22 @@ tasks:
           else
             git rev-parse --abbrev-ref HEAD
           fi
+    source:
+      - app/**/*.py
+      - migration/**/*
+      - Pipfile
+      - Pipfile.lock
+    method: none
+    precondition:
+      - sh: git describe --abbrev=0 --tags --match "holepunch-*"
+        msg: "No tags matching holepunch- found"
+      - sh: |
+          if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
+            test -z $(git tag --points-at HEAD | grep 'holepunch');
+          fi
+        msg: "This commit is already tagged for holepunch"
     cmds:
-      - echo "Updating API from {{.RELEASED_TAG}} to {{.NEXT_TAG}}"
+      - echo "Updating API from {{.RELEASED_TAG}} to holepunch-{{.NEXT_TAG}}"
       - docker build --build-arg APP_NAME=holepunch -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
       - docker push cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}
       - if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then git tag holepunch-{{.NEXT_TAG}}; git push origin holepunch-{{.NEXT_TAG}}; fi
@@ -96,37 +133,36 @@ tasks:
     desc: Deploy the holepunch app
     dir: deploy
     vars:
-      WORKSPACE: '{{ default "prod" .WORKSPACE }}'
-      VER: '{{ default "next" .VER }}'
       ANSIBLE_VAULT_PATH:
         sh: echo $ANSIBLE_VAULT_PATH
       ROOT_TOKEN:
         sh: cat {{.ANSIBLE_VAULT_PATH}}/{{.WORKSPACE}}/vault_recovery | awk '/Initial Root Token:(.*?)/{print $4}'
-      GIT_BRANCH:
-        sh: git rev-parse --abbrev-ref HEAD
+      # If you are on master, grab the tag that points at master and deploy that
+      # one - if you are on a branch - grab the tag with your
       HP_TAG:
         sh: |
-          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            git describe --abbrev=0 --tags --match "holepunch*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3+1}';
-          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            echo "{{.VER}}";
+          if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            git describe --abbrev=0 --tags --match "holepunch-*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3}'
           else
             git rev-parse --abbrev-ref HEAD
           fi
       SSH_TAG:
         sh: |
-          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            git describe --abbrev=0 --tags --match "ssh*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3+1}';
-          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            echo "{{.VER}}";
+          if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+            git describe --abbrev=0 --tags --match "ssh-*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3}'
           else
             git rev-parse --abbrev-ref HEAD
           fi
+    precondition:
+      - sh: test -n "{{.ANSIBLE_VAULT_PATH}}"
+        msg: "ANSIBLE_VAULT_PATH must be set"
+      - sh: "[ '{{.WORKSPACE}}' != '<no value>' ]"
+        msg: "WORKSPACE must be set"
+      - sh: host vault.service.city.consul
+        msg: "Could not reach vault, are you on the VPN?"
     cmds:
-      - (test -n "{{.ANSIBLE_VAULT_PATH}}") || (echo "ANSIBLE_VAULT_PATH must be set"; exit 1)
       - VAULT_ADDR=http://vault.service.city.consul:8200 vault login {{.ROOT_TOKEN}}
       - terraform plan -var "ssh_deploy_version={{.SSH_TAG}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "planfile"
       - echo "$(tput setaf 1)Waiting for cancellation. Ctrl-C now or forever hold your peace!$(tput sgr0)"
       - sleep 10
       - terraform apply "planfile"
-
