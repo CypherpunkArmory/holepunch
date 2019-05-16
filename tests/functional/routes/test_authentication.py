@@ -106,3 +106,12 @@ class TestAuthentication(object):
             json={"email": current_user.email, "password": "123123"},
         )
         assert res.status_code == 403
+
+    def test_session_refresh_with_revoked_token(
+        self, client, refresh_client, current_user
+    ):
+        """Session should fail if an old uuid is passed in the refresh token"""
+        res = client.delete("/account/token")
+        res = refresh_client.put("/session")
+
+        assert res.status_code == 403

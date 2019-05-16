@@ -152,6 +152,9 @@ class TestTunnels(object):
 
 class TestFailedTunnels(object):
     @mock.patch.object(
+        TunnelCreationService, "create_tunnel_nomad", return_value=[1, []]
+    )
+    @mock.patch.object(
         TunnelCreationService,
         "get_tunnel_details",
         side_effect=TunnelError(detail="Error"),
@@ -159,7 +162,12 @@ class TestFailedTunnels(object):
     )
     @mock.patch.object(TunnelDeletionService, "del_tunnel_nomad")
     def test_tunnel_delete_on_fail_deploy(
-        self, mock_del_tunnel, mock_create_tunnel, client, current_user
+        self,
+        mock_del_tunnel,
+        mock_tunnel_details,
+        mock_create_tunnel,
+        client,
+        current_user,
     ):
         """Tunnel delete is called when provisioning it fails"""
         res = client.post(
@@ -173,7 +181,7 @@ class TestFailedTunnels(object):
         )
 
         assert res.status_code == 500, res.get_json()
-        assert mock_create_tunnel.called
+        assert mock_tunnel_details.called
         assert mock_del_tunnel.called
 
     @mock.patch.object(

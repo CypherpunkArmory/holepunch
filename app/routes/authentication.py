@@ -52,6 +52,9 @@ def login():
 @jwt_refresh_token_required
 def session():
     uuid = get_jwt_identity()
+    user = User.query.filter_by(uuid=uuid).first()
+    if user is None:
+        return json_api(AccessDenied, ErrorSchema), 403
     ret = {
         "access_token": create_access_token(identity=uuid),
         "token_type": "Bearer",

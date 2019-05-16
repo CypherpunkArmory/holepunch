@@ -397,3 +397,11 @@ class TestAccount(object):
             json_response["access_token"], app.config["JWT_SECRET_KEY"]
         )["identity"]
         assert new_uuid != old_uuid
+
+    def test_returns_an_403_when_using_old_user_uuid(self, current_user, client):
+        """Returns an access denied when old uuid is used in token"""
+        token = authentication.encode_token(current_user.email, "password-reset")
+        tmp = client.delete("/account/token")
+        res = client.get(f"/account/confirm/{token}")
+
+        assert res.status_code == 403
