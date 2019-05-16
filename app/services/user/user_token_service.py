@@ -9,6 +9,8 @@ class UserTokenService:
 
     def confirm(self):
         user = User.query.filter_by(uuid=self.uuid).first()
+        if user is None:
+            return False
         user.confirmed = True
         db.session.add(user)
         db.session.flush()

@@ -64,7 +64,8 @@ def confirm(token):
             )
         elif salt == "email-confirm-salt" and uuid:
             uuid = authentication.decode_token(token, salt=salt)
-            UserTokenService(uuid).confirm()
+            if not UserTokenService(uuid).confirm():
+                return json_api(AccessDenied, ErrorSchema), 403
             return "", 204
 
     return json_api(AccessDenied, ErrorSchema), 403
