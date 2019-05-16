@@ -13,7 +13,9 @@ class TestTunnelCreationService(object):
     def test_create_tunnel_user(self, current_free_user, session):
         """ Raises an exception when too many open tunnels"""
 
-        zero_limit = UserLimit(tunnel_count=0, bandwidth=0, forwards=0)
+        zero_limit = UserLimit(
+            tunnel_count=0, bandwidth=0, forwards=0, reserved_subdomains=0
+        )
         asub = SubdomainFactory(user=current_free_user)
         session.add(asub)
 

@@ -14,7 +14,7 @@ class SubdomainCreationService:
         num_reserved_subdomains = self.current_user.subdomains.filter_by(
             reserved=True
         ).count()
-        if num_reserved_subdomains >= subdomain_reserved_limits[self.current_user.tier]:
+        if num_reserved_subdomains >= self.current_user.limits().reserved_subdomains:
             return True
         return False
 

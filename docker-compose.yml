@@ -83,7 +83,7 @@ services:
       - "9181:9181"
 
   jobs:
-    image: holepunch
+    <<: *default
     volumes:
       - .:/holepunch
     command: bash -l -c 'python -m flask rq worker'

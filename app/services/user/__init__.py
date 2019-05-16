@@ -8,12 +8,28 @@ class UserLimit(NamedTuple):
     tunnel_count: int
     bandwidth: int
     forwards: int
+    reserved_subdomains: int
 
 
 LIMITS = {
-    "free": {"tunnel_count": 1, "bandwidth": 100, "forwards": 2},
-    "paid": {"tunnel_count": 5, "bandwidth": 100000, "forwards": 9999},
-    "beta": {"tunnel_count": 2, "bandwidth": 1000, "forwards": 10},
+    "free": {
+        "tunnel_count": 1,
+        "bandwidth": 100,
+        "forwards": 2,
+        "reserved_subdomains": 0,
+    },
+    "beta": {
+        "tunnel_count": 2,
+        "bandwidth": 1000,
+        "forwards": 10,
+        "reserved_subdomains": 1,
+    },
+    "paid": {
+        "tunnel_count": 5,
+        "bandwidth": 100000,
+        "forwards": 9999,
+        "reserved_subdomains": 5,
+    },
 }
 
 
