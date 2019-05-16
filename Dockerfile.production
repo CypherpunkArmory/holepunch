@@ -4,6 +4,7 @@ LABEL maintainer="dev@userland.tech"
 RUN pip install pipenv=="2018.11.26"
 
 ARG APP_NAME
+ARG SOURCE_COMMIT
 ENV APP_HOME /$APP_NAME
 RUN mkdir $APP_HOME
 WORKDIR $APP_HOME
@@ -13,7 +14,7 @@ COPY Pipfile $APP_HOME/Pipfile
 RUN pipenv install --system
 
 ADD . $APP_HOME
-
+RUN echo "$SOURCE_COMMIT" >> /$APP_NAME/SOURCE_COMMIT
 EXPOSE 5000
 
 ENV FLASK_APP "app:create_app('production')"

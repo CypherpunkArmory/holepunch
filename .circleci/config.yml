@@ -38,8 +38,12 @@ jobs:
           command: sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose && sudo chmod +x /usr/local/bin/docker-compose
 
       - run:
-          name: install go-task
-          command: curl -sL https://taskfile.dev/install.sh | sh
+          name: install task
+          command: |
+            wget https://github.com/CypherpunkArmory/task/releases/download/v2.6.0-ula.pre/task_linux_amd64.tar.gz
+            tar xzvf task_linux_amd64.tar.gz
+            sudo cp ./task /usr/bin/task
+            sudo chmod +x /usr/bin/task
 
       - run:
           name: generate a default key
