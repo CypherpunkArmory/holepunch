@@ -62,7 +62,7 @@ def send_confirm_email(email_address, token_url):
 <head></head>
 <body>
 <h1>Holepunch email confirmation</h1>
-    <p>Visit <a href="{token_url}">{token_url}</a> to register your account.</p>
+    <p>Visit <a href="{token_url}">{token_url}</a> to confirm your account.</p>
     </body>
 </html>
 """
@@ -105,7 +105,7 @@ def send_password_reset_confirm_email(email_address, token_url):
                             Holepunch Password Reset Request
                         </h1>
                         <p>You've requested that the password for your Holepunch account be reset.</p>
-                        <p>Visit <a href="{token_url}">{token_url}</a> to register your account.</p>
+                        <p>Visit <a href="{token_url}">{token_url}</a> to reset your password.</p>
                         <p>If you didn't make this change, please let us know at support@holepunch.io</p>
                         <p>Thanks!</p>
                         <p> - The Holepunch Team</p>
