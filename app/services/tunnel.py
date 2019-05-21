@@ -4,6 +4,7 @@ import nomad
 from dpath.util import values
 
 from app import db
+from app.jobs.nomad_cleanup import cleanup_old_nomad_box
 from app.models import Subdomain, Tunnel, User
 from app.services.subdomain import SubdomainCreationService
 from app.utils.errors import (
@@ -59,9 +60,7 @@ class TunnelCreationService:
         except TunnelError:
             # if nomad fails to even start the job then there will be no job_id
             if job_id:
-                TunnelDeletionService(
-                    current_user=self.current_user, tunnel=None, job_id=job_id
-                ).del_tunnel_nomad()
+                cleanup_old_nomad_box.queue(job_id, timeout=60000)
             raise TunnelError("Failed to create tunnel")
         except nomad.api.exceptions.BaseNomadException:
             raise TunnelError("Failed to create tunnel")
@@ -157,8 +156,6 @@ class TunnelDeletionService:
             self.nomad_client = nomad.Nomad(host=current_app.config["SEA_HOST"])
 
     def delete(self):
-        self.del_tunnel_nomad()
-
         if self.subdomain.reserved:
             self.subdomain.in_use = False
             db.session.add(self.subdomain)
@@ -168,6 +165,4 @@ class TunnelDeletionService:
             db.session.delete(self.tunnel)
             db.session.delete(self.subdomain)
             db.session.flush()
-
-    def del_tunnel_nomad(self):
-        self.nomad_client.job.deregister_job(self.job_id)
+        cleanup_old_nomad_box.queue(self.job_id, timeout=60000)

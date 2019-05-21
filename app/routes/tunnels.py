@@ -90,6 +90,8 @@ def stop_tunnel(tunnel_id) -> Tuple[Response, int]:
         return make_response(""), 204
     except NoResultFound:
         return json_api(NotFoundError, ErrorSchema), 404
+    except TunnelError:
+        return json_api(TunnelError, ErrorSchema), 500
 
 
 @tunnel_blueprint.route("/tunnels/<int:tunnel_id>", methods=["GET"])
