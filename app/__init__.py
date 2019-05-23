@@ -99,7 +99,7 @@ def create_app(env: str = "development"):
         if env == "production":
             rollbar.init(
                 app.config["ROLLBAR_TOKEN"],
-                env,
+                app.config["ROLLBAR_ENV"],
                 # server root directory, makes tracebacks prettier
                 root=os.path.dirname(os.path.realpath(__file__)),
                 # flask already sets up logging

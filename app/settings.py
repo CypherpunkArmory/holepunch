@@ -83,7 +83,7 @@ class ProductionConfig(Config):
     DEBUG = False
 
     ROLLBAR_TOKEN = os.environ.get("ROLLBAR_TOKEN")
-
+    ROLLBAR_ENV = os.environ.get("ROLLBAR_ENV")
     RQ_REDIS_URL = os.environ.get("RQ_REDIS_URL")
 
     MAIL_SERVER = "email-smtp.us-west-2.amazonaws.com"
