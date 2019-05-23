@@ -95,6 +95,7 @@ pytest-cov = "*"
 fakeredis = "*"
 dnspython = "*"
 flask-limiter = "*"
+pytest-random-order = "*"
 
 [requires]
 python_version = "3.7"
