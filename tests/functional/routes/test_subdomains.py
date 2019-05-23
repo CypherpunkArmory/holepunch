@@ -58,17 +58,13 @@ class TestSubdomain(object):
     def test_subdomain_reserve_paid_over_limit(self, client, current_user, session):
         """User can't reserve more than 5 subdomains if they are paid tier"""
 
-        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="subby-sub")
-        sub2 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub-subby")
-        sub3 = subdomain.ReservedSubdomainFactory(
-            user=current_user, name="subby-sub-sub"
-        )
+        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub")
+        sub2 = subdomain.ReservedSubdomainFactory(user=current_user, name="subtract")
+        sub3 = subdomain.ReservedSubdomainFactory(user=current_user, name="subwoofer")
         sub4 = subdomain.ReservedSubdomainFactory(
-            user=current_user, name="sub-subby-subby"
+            user=current_user, name="subconscious"
         )
-        sub5 = subdomain.ReservedSubdomainFactory(
-            user=current_user, name="subby-sub-sup"
-        )
+        sub5 = subdomain.ReservedSubdomainFactory(user=current_user, name="subreddit")
         session.add(sub1)
         session.add(sub2)
         session.add(sub3)
@@ -111,12 +107,12 @@ class TestSubdomain(object):
     def test_subdomain_filter(self, client, session, current_user):
         """Can filter a subdomain using JSON-API compliant filters"""
 
-        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="subby-sub")
-        sub2 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub-subby")
+        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="submarine")
+        sub2 = subdomain.ReservedSubdomainFactory(user=current_user, name="sublime")
         session.add(sub1, sub2)
         session.flush()
 
-        res = client.get(f"/subdomains?filter[name]=subby-sub")
+        res = client.get(f"/subdomains?filter[name]=submarine")
 
         assert_valid_schema(res.get_json(), "subdomains.json")
         assert str(sub1.id) in values(res.get_json(), "data/*/id")

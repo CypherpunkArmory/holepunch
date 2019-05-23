@@ -134,8 +134,12 @@ class TestTunnels(object):
     def test_tunnel_filter_by_subdomain_name(self, client, session, current_user):
         """Can filter a subdomain using JSON-API compliant filters"""
 
-        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="subby-sub")
-        sub2 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub-subby")
+        sub1 = subdomain.ReservedSubdomainFactory(
+            user=current_user, name="sub-sandwich"
+        )
+        sub2 = subdomain.ReservedSubdomainFactory(
+            user=current_user, name="subscription"
+        )
 
         tun1 = tunnel.TunnelFactory(subdomain=sub1)
         tun2 = tunnel.TunnelFactory(subdomain=sub2)
@@ -143,7 +147,7 @@ class TestTunnels(object):
         session.add(tun1, tun2)
         session.flush()
 
-        res = client.get(f"/tunnels?filter[subdomain][name]=subby-sub")
+        res = client.get(f"/tunnels?filter[subdomain][name]=sub-sandwich")
 
         assert_valid_schema(res.get_json(), "tunnels.json")
         assert str(tun1.id) in values(res.get_json(), "data/*/id")
