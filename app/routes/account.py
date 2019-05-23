@@ -101,8 +101,8 @@ def update_user():
         updated_user = service.update()
 
         return json_api(updated_user, UserSchema), 200
-    except UserError:
-        return json_api(UnprocessableEntity, ErrorSchema), 422
+    except UserError as e:
+        return json_api(e, ErrorSchema), 422
     except AccessDenied as e:
         return json_api(e, ErrorSchema), 403
     except ValidationError as e:
@@ -145,7 +145,7 @@ def register_user():
 
         return json_api(user, UserSchema), 204
     except UserError as e:
-        return json_api(UnprocessableEntity(detail=e.detail), ErrorSchema), 422
+        return json_api(e, ErrorSchema), 422
     except ValidationError as e:
         return json_api(BadRequest(source=e.message), ErrorSchema), 400
 

@@ -12,7 +12,7 @@ class UserCreationService:
 
     def create(self) -> User:
         if User.query.filter_by(email=self.email).first():
-            raise UserError(detail="There is already a user with this email")
+            raise UserError(detail="Email already in use")
 
         new_user = User(
             email=self.email,
