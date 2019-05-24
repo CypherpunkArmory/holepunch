@@ -164,7 +164,7 @@ class TestFailedTunnels(object):
         side_effect=TunnelError(detail="Error"),
         autospec=True,
     )
-    @mock.patch.object(TunnelDeletionService, "delete")
+    @mock.patch.object(TunnelDeletionService, "del_tunnel_nomad")
     def test_tunnel_delete_on_fail_deploy(
         self,
         mock_del_tunnel,
@@ -194,17 +194,9 @@ class TestFailedTunnels(object):
         side_effect=TunnelError(detail="Error"),
         autospec=True,
     )
-    @mock.patch.object(TunnelCreationService, "get_tunnel_details")
-    @mock.patch.object(TunnelDeletionService, "delete")
-    @mock.patch("app.services.tunnel.cleanup_old_nomad_box.queue")
+    @mock.patch.object(TunnelDeletionService, "del_tunnel_nomad")
     def test_tunnel_not_delete_on_start_up_fail(
-        self,
-        mock_del_tunnel_job,
-        mock_del_tunnel_from_db,
-        mock_get_tunnel_details,
-        mock_create_tunnel,
-        client,
-        current_user,
+        self, mock_del_tunnel, mock_start_tunnel, client, current_user
     ):
         """Tunnel delete is not called when provisioning it fails"""
         res = client.post(
@@ -218,32 +210,20 @@ class TestFailedTunnels(object):
         )
 
         assert res.status_code == 500
-        assert mock_create_tunnel.called
-        assert not mock_get_tunnel_details.called
-        assert not mock_del_tunnel_from_db.called
-        assert not mock_del_tunnel_job.called
+        assert mock_start_tunnel.called
+        assert not mock_del_tunnel.called
 
     @mock.patch.object(
-        TunnelCreationService, "create_tunnel_nomad", return_value=("1", [])
-    )
-    @mock.patch.object(
         TunnelCreationService,
-        "get_tunnel_details",
-        side_effect=TunnelError(detail="Error"),
+        "create_tunnel_nomad",
+        side_effect=BaseNomadException("Error"),
         autospec=True,
     )
-    @mock.patch.object(TunnelDeletionService, "delete")
-    @mock.patch("app.services.tunnel.cleanup_old_nomad_box.queue")
-    def test_tunnel_delete_on_fail_deploy(
-        self,
-        mock_del_tunnel_job,
-        mock_del_tunnel_from_db,
-        mock_get_tunnel_details,
-        mock_create_tunnel,
-        client,
-        current_user,
+    @mock.patch.object(TunnelDeletionService, "del_tunnel_nomad")
+    def test_tunnel_nomad_fail(
+        self, mock_del_tunnel, mock_start_tunnel, client, current_user
     ):
-        """Tunnel delete is called when provisioning it fails"""
+        """Tunnel delete is not called when nomad fails"""
         res = client.post(
             "/tunnels",
             json={
@@ -254,7 +234,6 @@ class TestFailedTunnels(object):
             },
         )
 
-        assert res.status_code == 500, res.get_json()
-        assert mock_get_tunnel_details.called
-        assert not mock_del_tunnel_from_db.called
-        assert mock_del_tunnel_job.called
+        assert res.status_code == 500
+        assert mock_start_tunnel.called
+        assert not mock_del_tunnel.called
