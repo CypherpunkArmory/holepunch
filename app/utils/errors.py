@@ -79,7 +79,7 @@ class UserError(JsonApiException):
     """Raised when there is an error creating/deleting a user"""
 
     title = "User Error"
-    stats = "500"
+    stats = "422"
     detail = "Database error when updating user"
 
 

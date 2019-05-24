@@ -332,7 +332,7 @@ class TestAccount(object):
         self, client, current_user, session
     ):
         """DELETE to /account url succeeds and associated reserved subdomains no longer exists"""
-        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub1")
+        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub-bass")
         session.add(sub1)
         session.flush()
 
@@ -351,7 +351,7 @@ class TestAccount(object):
         self, client, current_user, session
     ):
         """DELETE to /account url succeeds and associated tunnels no longer exists"""
-        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub1")
+        sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="supersub")
         tun1 = tunnel.TunnelFactory(subdomain=sub1)
 
         session.add(tun1)
