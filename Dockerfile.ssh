@@ -9,6 +9,7 @@ RUN echo "GatewayPorts yes" >> /etc/ssh/sshd_config && \
   echo "AllowStreamLocalForwarding yes" >> /etc/ssh/sshd_config && \
   echo "PermitTunnel yes" >> /etc/ssh/sshd_config
 
+# Allow SSH Access, but no shell for the punch user
 RUN useradd -m -s /usr/sbin/nologin punch && \
   mkdir /home/punch/.ssh && \
   chown punch:punch /home/punch/.ssh && \

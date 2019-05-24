@@ -2,7 +2,7 @@ class TestRoot(object):
     def test_root_accessible(self, unauthenticated_client, app):
         """Root url is accessible with no login"""
         res = unauthenticated_client.get("/")
-        assert res.get_data() == b"Greetings User!"
+        assert res.status == "200 OK"
 
     def test_root_cors_config(self, client, app):
         """Includes wide open CORS headers"""

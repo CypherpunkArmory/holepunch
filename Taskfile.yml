@@ -44,8 +44,10 @@ tasks:
   add_host:
     prefix: 'add_host'
     desc: Add a domain to your hosts file so you can test
+    vars:
+      DOMAIN: '{{ default "none" .DOMAIN }}'
     precondition:
-      - sh: "[ '{{.DOMAIN}}' != '<no value>' ]"
+      - sh: "[ '{{.DOMAIN}}' != 'none' ]"
         msg: "DOMAIN must be set"
     cmds:
       - sudo sh -lc 'echo "127.0.0.1	{{.DOMAIN}}" >> /private/etc/hosts'
@@ -57,7 +59,6 @@ tasks:
       LISTEN_PORT: 4000
     cmds:
       - "docker run -p {{.LISTEN_PORT}}:80 -e GUNICORN_CMD_ARGS=\"--capture-output --error-logfile - --access-logfile - --access-logformat '%(h)s %(t)s %(r)s %(s)s Host: %({Host}i)s}'\" kennethreitz/httpbin"
-
 
   release-ssh:
     prefix: 'release-ssh'
@@ -76,21 +77,27 @@ tasks:
             git rev-parse --abbrev-ref HEAD
           fi
     sources:
-      - Dockerfile.ssh
-    method: none
+      - ./Dockerfile.ssh
+    method: checksum
     precondition:
       - sh: git describe --abbrev=0 --tags --match "ssh-*"
         msg: "No tags matching ssh- found"
-      - sh: |
-          if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
-            test -z $(git tag --points-at HEAD | grep 'ssh');
-          fi
-        msg: "This commit is already tagged for ssh"
+    status:
+      - |
+        if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
+          test $(git describe --abbrev=0 --tags --match "ssh*")
+        else
+          exit 1
+        fi
     cmds:
       - echo "Updating API from {{.RELEASED_TAG}} to ssh-{{.NEXT_TAG}}"
-      - docker build --build-arg APP_NAME=holepunch -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
-      - docker push cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}
-      - if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then git tag ssh-{{.NEXT_TAG}}; git push origin ssh-{{.NEXT_TAG}}; fi
+      - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:{{.NEXT_TAG}} .
+      - docker push cypherpunkarmory/sshd:{{.NEXT_TAG}}
+      - |
+        if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+          git tag ssh-{{.NEXT_TAG}};
+          git push origin ssh-{{.NEXT_TAG}};
+        fi
 
   release:
     prefix: 'release'
@@ -103,46 +110,62 @@ tasks:
         sh: |
           if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
             git describe --abbrev=0 --tags --match "holepunch*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3+1}';
-          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+          elif [ "{{.VER}}" != "next" ]; then
             echo "{{.VER}}";
           else
             git rev-parse --abbrev-ref HEAD
           fi
-    source:
+      SOURCE_COMMIT:
+        sh: git rev-parse HEAD
+    sources:
       - app/**/*.py
-      - migration/**/*
+      - migration/**/*.{py,ini,mako}
+      - support/**/*.json
       - Pipfile
       - Pipfile.lock
-    method: none
+      - Dockerfile.production
+    method: checksum
     precondition:
       - sh: git describe --abbrev=0 --tags --match "holepunch-*"
         msg: "No tags matching holepunch- found"
-      - sh: |
-          if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
-            test -z $(git tag --points-at HEAD | grep 'holepunch');
-          fi
-        msg: "This commit is already tagged for holepunch"
+    status:
+      - |
+        if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
+          test $(git describe --abbrev=0 --tags --match "ssh*")
+        else
+          exit 1
+        fi
     cmds:
       - echo "Updating API from {{.RELEASED_TAG}} to holepunch-{{.NEXT_TAG}}"
-      - docker build --build-arg APP_NAME=holepunch -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
+      - docker build --build-arg APP_NAME=holepunch --build-arg SOURCE_COMMIT={{.SOURCE_COMMIT}} -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
       - docker push cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}
-      - if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then git tag holepunch-{{.NEXT_TAG}}; git push origin holepunch-{{.NEXT_TAG}}; fi
+      - |
+        if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+          git tag holepunch-{{.NEXT_TAG}};
+          git push origin holepunch-{{.NEXT_TAG}};
+        fi
 
   deploy:
     prefix: 'deploy'
     desc: Deploy the holepunch app
     dir: deploy
+    deps:
+      - release
+      - release-ssh
     vars:
       ANSIBLE_VAULT_PATH:
         sh: echo $ANSIBLE_VAULT_PATH
       ROOT_TOKEN:
         sh: cat {{.ANSIBLE_VAULT_PATH}}/{{.WORKSPACE}}/vault_recovery | awk '/Initial Root Token:(.*?)/{print $4}'
       # If you are on master, grab the tag that points at master and deploy that
-      # one - if you are on a branch - grab the tag with your
+      # one - if you are on a branch - grab the tag with your branch name and
+      # deploy that.
       HP_TAG:
         sh: |
           if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
             git describe --abbrev=0 --tags --match "holepunch-*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3}'
+          elif [ "{{.HP_TAG}}" != "<no value>" ]; then
+            echo "{{.HP_TAG}}";
           else
             git rev-parse --abbrev-ref HEAD
           fi
@@ -150,6 +173,8 @@ tasks:
         sh: |
           if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
             git describe --abbrev=0 --tags --match "ssh-*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3}'
+          elif [ "{{.SSH_TAG}}" != "<no value>" ]; then
+            echo "{{.SSH_TAG}}";
           else
             git rev-parse --abbrev-ref HEAD
           fi
@@ -158,11 +183,28 @@ tasks:
         msg: "ANSIBLE_VAULT_PATH must be set"
       - sh: "[ '{{.WORKSPACE}}' != '<no value>' ]"
         msg: "WORKSPACE must be set"
+      - sh: "[ \"$(nomad --version)\" = 'Nomad v0.8.7' ]"
       - sh: host vault.service.city.consul
         msg: "Could not reach vault, are you on the VPN?"
+      - NOMAD_ADDR=http://nomad:4646 nomad status
     cmds:
       - VAULT_ADDR=http://vault.service.city.consul:8200 vault login {{.ROOT_TOKEN}}
+      - terraform workspace select {{.WORKSPACE}}
       - terraform plan -var "ssh_deploy_version={{.SSH_TAG}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "planfile"
-      - echo "$(tput setaf 1)Waiting for cancellation. Ctrl-C now or forever hold your peace!$(tput sgr0)"
+      - echo "$(tput setaf 1) Waiting for cancellation. Ctrl-C now or forever hold your peace!$(tput sgr0)"
       - sleep 10
       - terraform apply "planfile"
+      - |
+        deployment=$(nomad deployment list | grep "running" | awk '{ print $1 }')
+        sgo="nogo"
+        wgo="nogo"
+        check_count=0
+        while [ $sgo = "nogo" ] || [ $wgo = "nogo" ]; do
+          echo "Waiting for deploy to green.  Service: $sgo,  Workers: $wgo Check: $check_count"
+          sgo=$(nomad deployment status $deployment | grep "^services" | awk '{if($4==$7){print "go"}else{print "nogo"}}')
+          wgo=$(nomad deployment status $deployment | grep "^workers" | awk '{if($4==$7){print "go"}else{print "nogo"}}')
+          check_count=$((check_count+1))
+          test $check_count -gt 160 && exit 1
+          sleep 1
+        done
+        nomad deployment promote $deployment
