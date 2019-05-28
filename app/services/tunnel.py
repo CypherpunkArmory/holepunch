@@ -52,7 +52,7 @@ class TunnelCreationService:
         self.check_subdomain_permissions()
         job_id = None
         if self.over_tunnel_limit():
-            raise TunnelLimitReached("")
+            raise TunnelLimitReached("Maximum number of opened tunnels reached")
         try:
             job_id, result = self.create_tunnel_nomad()
             ssh_port, ip_address = self.get_tunnel_details(result, job_id)

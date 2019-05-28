@@ -18,6 +18,7 @@ from app.utils.errors import (
     SubdomainInUse,
     SubdomainLimitReached,
     TunnelError,
+    TunnelLimitReached,
 )
 from app.utils.json import dig, json_api
 from typing import Tuple
@@ -58,6 +59,8 @@ def start_tunnel() -> Tuple[Response, int]:
             ).create()
         except SubdomainLimitReached:
             return json_api(SubdomainLimitReached, ErrorSchema), 403
+        except TunnelLimitReached:
+            return json_api(TunnelLimitReached, ErrorSchema), 403
         except TunnelError:
             return json_api(TunnelError, ErrorSchema), 500
 

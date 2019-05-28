@@ -31,7 +31,9 @@ class SubdomainCreationService:
     def reserve(self, reserve=True):
         if reserve:
             if self.over_subdomain_limits():
-                raise SubdomainLimitReached("")
+                raise SubdomainLimitReached(
+                    "Maximum number of reserved subdomains reached"
+                )
         subdomain_exist = (
             db.session.query(Subdomain.name)
             .filter_by(name=self.subdomain_name)
@@ -39,7 +41,7 @@ class SubdomainCreationService:
         )
 
         if subdomain_exist:
-            raise SubdomainTaken("")
+            raise SubdomainTaken("Requested Subdomain is already reserved")
 
         subdomain = Subdomain(
             user_id=self.current_user.id,
