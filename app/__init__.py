@@ -41,6 +41,7 @@ jwt = JWTManager()
 momblish = load_corpus()
 json_schema_manager = JSONSchemaManager("../support/schemas")
 Q = RQ()
+Q.queues = ["email", "nomad"]
 
 
 def create_app(env: str = "development"):
@@ -55,7 +56,10 @@ def create_app(env: str = "development"):
     json_schema_manager.init_app(app)
     Q.init_app(app)
     CORS(app)
+    from app.jobs.nomad_cleanup import check_all_boxes
 
+    # queue job every day at noon (UTC!)
+    check_all_boxes.cron("0 0 12 * *", "Check running tunnels")
     from app.routes.tunnels import tunnel_blueprint
     from app.routes.subdomains import subdomain_blueprint
     from app.routes.authentication import auth_blueprint

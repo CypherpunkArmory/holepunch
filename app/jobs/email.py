@@ -35,7 +35,7 @@ class Email:
         pass
 
 
-@Q.job(timeout=60000)
+@Q.job(func_or_queue="email", timeout=60000)
 def send_beta_backlog_notification_email(email_address):
     email = Email()
     email.subject = "Holepunch beta"
@@ -52,7 +52,7 @@ def send_beta_backlog_notification_email(email_address):
     email.send(email_address)
 
 
-@Q.job(timeout=60000)
+@Q.job(func_or_queue="email", timeout=60000)
 def send_confirm_email(email_address, token_url):
     email = Email()
     email.subject = "Account Email Verification"
@@ -69,7 +69,7 @@ def send_confirm_email(email_address, token_url):
     email.send(email_address)
 
 
-@Q.job(timeout=60000)
+@Q.job(func_or_queue="email", timeout=60000)
 def send_password_change_confirm_email(email_address):
     email = Email()
     email.subject = "You've successfully changed your Holepunch password"
@@ -92,7 +92,7 @@ def send_password_change_confirm_email(email_address):
     email.send(email_address)
 
 
-@Q.job(timeout=60000)
+@Q.job(func_or_queue="email", timeout=60000)
 def send_password_reset_confirm_email(email_address, token_url):
     email = Email()
     email.subject = "Reset your Holepunch Password"
@@ -116,7 +116,7 @@ def send_password_reset_confirm_email(email_address, token_url):
     email.send(email_address)
 
 
-@Q.job(timeout=60000)
+@Q.job(func_or_queue="email", timeout=60000)
 def send_email_change_confirm_email(email_address):
     email = Email()
     email.subject = "You've successfully changed your Holepunch email"
