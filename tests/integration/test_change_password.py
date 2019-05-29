@@ -15,7 +15,7 @@ class TestChangePassword(object):
             "http://mail:8025/api/v1/events", stream=True, timeout=30
         )
         events_r.encoding = "ascii"
-
+        old_uuid = current_user.uuid
         res = unauthenticated_client.post(
             "/account/token",
             json={
@@ -55,3 +55,4 @@ class TestChangePassword(object):
         user = User.query.filter_by(email=current_user.email).first()
         assert res.status_code == 200
         assert user.check_password("abc123") is True
+        assert old_uuid != user.uuid

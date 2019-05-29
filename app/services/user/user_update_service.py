@@ -2,6 +2,7 @@ from app import db
 from app.services import authentication
 from app.models import User
 from app.utils.errors import AccessDenied, UserError
+import uuid
 
 
 class UserUpdateService:
@@ -27,6 +28,7 @@ class UserUpdateService:
             ):
                 raise AccessDenied("Wrong password")
             self.user.set_password(self.new_password)
+            self.user.uuid = str(uuid.uuid4())
 
         # email is also special cased in the sense of we do not attempt
         # to perform the write if we know there is a conflicting email

@@ -229,7 +229,7 @@ class TestAccount(object):
             },
         )
 
-        user = User.query.filter_by(uuid=current_user.uuid).first_or_404()
+        user = User.query.filter_by(email=current_user.email).first_or_404()
         assert res.status_code == 200
         assert user.check_password("abc123") is True
         password_changed_email.assert_called_once()
