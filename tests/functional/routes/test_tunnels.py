@@ -4,6 +4,7 @@ from nomad.api.exceptions import BaseNomadException
 from app.models import Tunnel
 from app.services.tunnel import TunnelCreationService, TunnelDeletionService
 from app.utils.errors import TunnelError
+from tests.factories.user import UserFactory
 from tests.factories import subdomain, tunnel
 from tests.support.assertions import assert_valid_schema
 from unittest import mock
@@ -36,6 +37,19 @@ class TestTunnels(object):
         res3 = client.get(f"/tunnels/{tun.id}")
         assert_valid_schema(res3.get_json(), "tunnel.json")
         assert str(tun.id) in values(res3.get_json(), "data/id")
+
+    def test_get_tunnel_unowned(self, client, current_user, session):
+        """User cannot lookup tunnel info that does not belong to them"""
+        other_user = UserFactory(email="other_person@gmail.com")
+        session.add(other_user)
+        session.flush()
+
+        tun = tunnel.TunnelFactory(subdomain__user=other_user)
+        session.add(tun)
+        session.flush()
+
+        res = client.get(f"/tunnels/{tun.id}")
+        assert res.status_code == 404
 
     @pytest.mark.vcr()
     def test_tunnel_open_without_subdomain(self, client, current_user, session):
@@ -124,7 +138,7 @@ class TestTunnels(object):
         assert res.status_code == 204
 
     def test_tunnel_close_unowned(self, client):
-        """User cant close a tunnel they doesnt own"""
+        """User cant close a tunnel they do not own"""
 
         # I mean hopefully we're not making 239M subdomains in the test run
         res = client.delete("/tunnel/239402934")

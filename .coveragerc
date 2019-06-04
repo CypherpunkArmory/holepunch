@@ -1,0 +1,31 @@
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover
+
+    # Don't complain about missing debug-only code:
+    def __repr__
+    if self\.debug
+
+    # Don't complain if tests don't hit defensive assertion code:
+    raise AccessDenied
+    raise AssertionError
+    raise NotImplementedError
+    raise TunnelError
+
+    # Don't complain about configuration code
+    if os\.getenv\(\"FLASK_ENV\"\) == "production":
+    if current_app\.config\[\"ENV\"\] == "production": 
+    if current_app\.config\[\"ENV\"\] == "development": 
+    if current_app\.config\[\"ENV\"\] == "development": 
+    if __name__ == .__main__.:
+
+    # Don't complain if tests hit validation errors or nomad errors
+    except SubdomainTaken:
+    except nomad\.api\.exceptions\.BaseNomadException:
+    except ValidationError:
+    except ValidationError as e:
+    except TunnelError: 
+    
+    

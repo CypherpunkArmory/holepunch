@@ -2,6 +2,7 @@ from app.models import Subdomain
 from tests.factories import subdomain, user
 from tests.support.assertions import assert_valid_schema
 from dpath.util import values
+import json
 
 
 class TestSubdomain(object):
@@ -44,6 +45,24 @@ class TestSubdomain(object):
 
         assert_valid_schema(res.get_data(), "subdomain.json")
         assert post_subdomain_count > pre_subdomain_count
+
+    def test_subdomain_reserve_owned(self, client, current_user, session):
+        """User cant reserve an already reserved subdomain"""
+
+        sub = subdomain.ReservedSubdomainFactory(name="substation")
+        session.add(sub)
+        session.flush()
+
+        res = client.post(
+            "/subdomains",
+            json={"data": {"type": "subdomain", "attributes": {"name": "substation"}}},
+        )
+
+        assert res.status_code == 400
+        assert (
+            res.json["data"]["attributes"]["detail"]
+            == "Subdomain has already been reserved"
+        )
 
     def test_subdomain_reserve_free_tier(self, free_client):
         """User cant reserve a subdomain if they are free tier"""
@@ -103,6 +122,22 @@ class TestSubdomain(object):
         res = client.delete(f"/subdomains/{sub.id}")
 
         assert res.status_code == 404
+
+    def test_subdomain_release_used(self, client, session, current_user):
+        """User cannot release a subdomain is being used"""
+
+        sub = subdomain.InuseSubdomainFactory(user=current_user, name="scrub")
+        session.add(sub)
+        session.flush()
+
+        assert sub.in_use is True
+
+        res = client.delete(f"/subdomains/{sub.id}")
+        assert res.status_code == 403
+        assert (
+            res.json["data"]["attributes"]["detail"]
+            == "Subdomain is associated with a running tunnel"
+        )
 
     def test_subdomain_filter(self, client, session, current_user):
         """Can filter a subdomain using JSON-API compliant filters"""

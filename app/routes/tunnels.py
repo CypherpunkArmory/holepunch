@@ -82,17 +82,12 @@ def stop_tunnel(tunnel_id) -> Tuple[Response, int]:
     """
     Stop a currently running tunnel
     """
-    if not tunnel_id:
-        return json_api(BadRequest, ErrorSchema), 400
-
     current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
     tunnel = Tunnel.query.filter_by(user=current_user, id=tunnel_id).first_or_404()
 
     try:
         TunnelDeletionService(current_user, tunnel).delete()
         return make_response(""), 204
-    except NoResultFound:
-        return json_api(NotFoundError, ErrorSchema), 404
     except TunnelError:
         return json_api(TunnelError, ErrorSchema), 500
 
@@ -103,13 +98,7 @@ def get_tunnel(tunnel_id) -> Tuple[Response, int]:
     """
     Retrieve Tunnel Resource
     """
-    if not tunnel_id:
-        return json_api(BadRequest, ErrorSchema), 400
-
     current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
     tunnel = Tunnel.query.filter_by(user=current_user, id=tunnel_id).first_or_404()
 
-    try:
-        return json_api(tunnel, TunnelSchema), 200
-    except NoResultFound:
-        return json_api(NotFoundError, ErrorSchema), 404
+    return json_api(tunnel, TunnelSchema), 200

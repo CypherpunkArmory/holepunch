@@ -1,7 +1,6 @@
 from flask import Blueprint, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from jsonschema import ValidationError
-from sqlalchemy.orm.exc import NoResultFound
 
 from app import json_schema_manager
 from app.models import Subdomain, User
@@ -10,7 +9,6 @@ from app.services.subdomain import SubdomainCreationService, SubdomainDeletionSe
 from app.utils.errors import (
     AccessDenied,
     BadRequest,
-    NotFoundError,
     SubdomainError,
     SubdomainTaken,
     SubdomainInUse,
@@ -81,15 +79,9 @@ def get_subdomain(subdomain_id):
     """
     Stop a currently running subdomain
     """
-    if not subdomain_id:
-        return json_api(BadRequest, ErrorSchema), 400
-
     current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
     subdomain = Subdomain.query.filter_by(
         user=current_user, id=subdomain_id
     ).first_or_404()
 
-    try:
-        return json_api(subdomain, SubdomainSchema)
-    except NoResultFound:
-        return json_api(NotFoundError, ErrorSchema), 404
+    return json_api(subdomain, SubdomainSchema)

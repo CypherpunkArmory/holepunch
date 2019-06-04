@@ -61,9 +61,6 @@ class SubdomainDeletionService:
         self.current_user = current_user
         self.subdomain = subdomain
 
-    def is_users(self) -> bool:
-        return self.subdomain.user == self.current_user
-
     def release(self) -> None:
         if self.subdomain.in_use:
             raise SubdomainInUse("Subdomain is in use")

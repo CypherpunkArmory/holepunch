@@ -3,6 +3,8 @@ from app.jobs.email import (
     send_confirm_email,
     send_password_change_confirm_email,
     send_password_reset_confirm_email,
+    send_beta_backlog_notification_email,
+    send_email_change_confirm_email,
 )
 import requests
 
@@ -57,6 +59,32 @@ class TestEmailJob(object):
         r.encoding = "ascii"
 
         send_password_reset_confirm_email(current_user.email, "sample-url.com/token")
+
+        for line in r.iter_lines(decode_unicode=True):
+            if line and current_user.email in line:
+                r.close()
+                break
+
+    def test_beta_backlog_notification_email(
+        self, unauthenticated_client, current_user
+    ):
+        """ The Beta backlog notification email is sent correctly"""
+        r = requests.get("http://mail:8025/api/v1/events", stream=True, timeout=15)
+        r.encoding = "ascii"
+
+        send_beta_backlog_notification_email(current_user.email)
+
+        for line in r.iter_lines(decode_unicode=True):
+            if line and current_user.email in line:
+                r.close()
+                break
+
+    def test_email_change_confirm_email(self, unauthenticated_client, current_user):
+        """ The Beta backlog notification email is sent correctly"""
+        r = requests.get("http://mail:8025/api/v1/events", stream=True, timeout=15)
+        r.encoding = "ascii"
+
+        send_email_change_confirm_email(current_user.email)
 
         for line in r.iter_lines(decode_unicode=True):
             if line and current_user.email in line:

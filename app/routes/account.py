@@ -6,7 +6,7 @@ from app.services.user.user_notification_service import UserNotificationService
 from app.services.user.user_token_service import UserTokenService
 from app.models import User
 from app.serializers import UserSchema
-from flask import redirect, request, Blueprint, jsonify, url_for
+from flask import request, Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import json_schema_manager
 from app.utils.errors import BadRequest, UnprocessableEntity, UserError, AccessDenied
@@ -148,5 +148,3 @@ def register_user():
         return json_api(e, ErrorSchema), 422
     except ValidationError as e:
         return json_api(BadRequest(source=e.message), ErrorSchema), 400
-
-    return "", 204
