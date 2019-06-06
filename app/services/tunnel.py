@@ -44,10 +44,7 @@ class TunnelCreationService:
 
         # We need to do this each time so each if a nomad service goes down
         # it doesnt affect web api
-        if current_app.config["ENV"] == "production":
-            self.nomad_client = nomad.Nomad(discover_service("nomad").ip)
-        else:
-            self.nomad_client = nomad.Nomad(host=current_app.config["SEA_HOST"])
+        self.nomad_client = nomad.Nomad(discover_service("nomad").ip)
 
     def create(self) -> Tunnel:
         self.check_subdomain_permissions()
@@ -150,10 +147,8 @@ class TunnelDeletionService:
         if tunnel:
             self.subdomain = tunnel.subdomain
             self.job_id = tunnel.job_id
-        if current_app.config["ENV"] == "production":
-            self.nomad_client = nomad.Nomad(discover_service("nomad").ip)
-        else:
-            self.nomad_client = nomad.Nomad(host=current_app.config["SEA_HOST"])
+
+        self.nomad_client = nomad.Nomad(discover_service("nomad").ip)
 
     def delete(self):
         if self.subdomain.reserved:
