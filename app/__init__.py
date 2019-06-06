@@ -1,8 +1,8 @@
 import os
 import traceback
 
-from dotenv import load_dotenv
 from flask import Flask, request, got_request_exception
+from flask.cli import AppGroup
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -16,6 +16,7 @@ from flask_limiter.util import get_remote_address
 from werkzeug.contrib.fixers import ProxyFix
 import rollbar
 import rollbar.contrib.flask
+import stripe
 from packaging import version
 
 from app.utils.json import JSONSchemaManager, json_api
@@ -24,7 +25,7 @@ from app.utils.json import JSONSchemaManager, json_api
 # this has to be checked against the actual environment in order to load the .env
 # file in production and boot the app correctly
 if os.getenv("FLASK_ENV") == "production":
-    load_dotenv("/holepunch/.env.production")
+    os.environ["DD_AGENT_HOST"] = "172.17.0.1"
     from ddtrace import patch_all
 
     patch_all()
@@ -56,6 +57,8 @@ def create_app(env: str = "development"):
     json_schema_manager.init_app(app)
     Q.init_app(app)
     CORS(app)
+    stripe.api_key = app.config["STRIPE_KEY"]
+    stripe.api_base = app.config["STRIPE_ENDPOINT"]
     from app.jobs.nomad_cleanup import check_all_boxes
 
     # queue job every day at noon (UTC!)
@@ -65,6 +68,7 @@ def create_app(env: str = "development"):
     from app.routes.authentication import auth_blueprint
     from app.routes.account import account_blueprint
     from app.routes.root import root_blueprint
+    from app.commands import plan
 
     from querystring_parser.parser import parse as qs_parse
 
@@ -79,6 +83,7 @@ def create_app(env: str = "development"):
     app.register_blueprint(subdomain_blueprint)
     app.register_blueprint(account_blueprint)
     app.register_blueprint(root_blueprint)
+    app.cli.add_command(plan)
 
     from app.serializers import ErrorSchema
     from app.utils.errors import (

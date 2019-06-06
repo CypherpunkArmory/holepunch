@@ -44,6 +44,8 @@ services:
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - .:/holepunch
+    links:
+      - nomad
     depends_on:
       - db
       - consul
@@ -51,6 +53,11 @@ services:
       - redis
       - mail
       - jobs
+
+  stripe:
+    image: stripemock/stripe-mock
+    ports:
+      - "12111:12111"
 
   jump:
     image: cypherpunkarmory/sshd:develop
@@ -124,7 +131,6 @@ services:
       - FABIO_PROXY_ADDR=:9999;proto=http,:9991;proto=tcp+sni
     links:
       - consul
-
     ports:
       - "9998:9998" # GUI/management
       - "80:9999" # HTTP exposed
