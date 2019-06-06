@@ -5,7 +5,7 @@ from app.services.tunnel import TunnelDeletionService
 from app.models import Tunnel
 
 
-class UserDeletionService:
+class UserDeletion:
     def __init__(self, user, **attrs):
         self.user = user
         self.scopes = attrs.pop("scopes")

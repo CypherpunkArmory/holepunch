@@ -1,11 +1,10 @@
 from app import db
-from app.models import User
+from app.models import User, Plan
 from app.utils.errors import UserError
-from sqlalchemy.exc import IntegrityError
 import uuid
 
 
-class UserCreationService:
+class UserCreation:
     def __init__(self, **attrs):
         self.email = attrs.pop("email")
         self.password = attrs.pop("password")
@@ -17,7 +16,7 @@ class UserCreationService:
         new_user = User(
             email=self.email,
             confirmed=False,
-            tier=self.get_user_tier(),
+            plan=self.get_user_plan(),
             uuid=str(uuid.uuid4()),
         )
         new_user.set_password(self.password)
@@ -26,8 +25,8 @@ class UserCreationService:
 
         return new_user
 
-    def get_user_tier(self) -> str:
+    def get_user_plan(self) -> str:
         if User.query.filter_by(confirmed=True).count() < 1000:
-            return "beta"
+            return Plan.beta()
         else:
-            return "waiting"
+            return Plan.waiting()

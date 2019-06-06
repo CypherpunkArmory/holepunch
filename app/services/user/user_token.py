@@ -3,7 +3,7 @@ from app import db
 from flask_jwt_extended import create_access_token
 
 
-class UserTokenService:
+class UserToken:
     def __init__(self, uuid):
         self.uuid = uuid
 

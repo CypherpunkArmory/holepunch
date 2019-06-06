@@ -20,5 +20,8 @@
   },
   "app/models.py": {
     "type": "model"
+  },
+  "tests/factories/*.py": {
+    "type": "factory"
   }
 }

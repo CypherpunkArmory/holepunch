@@ -10,7 +10,7 @@ from app.services.authentication import encode_token
 from flask import current_app
 
 
-class UserNotificationService:
+class UserNotification:
     def __init__(self, user: User):
         self.user = user
 
@@ -18,7 +18,7 @@ class UserNotificationService:
         if self.user.confirmed:
             return
 
-        if self.user.tier == "waiting":
+        if self.user.tier() == "waiting":
             send_beta_backlog_notification_email.queue(self.user.email)
         else:
             self.registration_email()

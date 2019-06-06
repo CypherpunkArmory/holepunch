@@ -9,7 +9,7 @@ import requests
 
 
 class TestAccount(object):
-    @mock.patch("app.services.user.user_notification_service.send_confirm_email.queue")
+    @mock.patch("app.services.user.user_notification.send_confirm_email.queue")
     def test_obtain_email_confirm_token(
         self, send_confirm_email, unauthenticated_client, session
     ):
@@ -35,7 +35,7 @@ class TestAccount(object):
         assert re.match("http://localhost:5000/account/confirm(.*)", token)
 
     @mock.patch(
-        "app.services.user.user_notification_service.send_password_reset_confirm_email.queue"
+        "app.services.user.user_notification.send_password_reset_confirm_email.queue"
     )
     def test_obtain_a_password_reset_token(
         self, password_reset_email, unauthenticated_client, session
@@ -62,7 +62,7 @@ class TestAccount(object):
         assert re.match("http://localhost:5000/account/confirm(.*)", token)
 
     @mock.patch(
-        "app.services.user.user_notification_service.send_password_reset_confirm_email.queue"
+        "app.services.user.user_notification.send_password_reset_confirm_email.queue"
     )
     def test_returns_200_for_non_existent_user(
         self, password_reset_email, unauthenticated_client
@@ -147,7 +147,7 @@ class TestAccount(object):
 
         assert res.status_code == 422, res.get_json()
 
-    @mock.patch("app.services.user.user_notification_service.send_confirm_email.queue")
+    @mock.patch("app.services.user.user_notification.send_confirm_email.queue")
     def test_register_with_existing_account_no_email_sent(
         self, send_confirm_email, unauthenticated_client, session
     ):
@@ -170,7 +170,7 @@ class TestAccount(object):
         assert res.status_code == 422
         send_confirm_email.assert_not_called()
 
-    @mock.patch("app.services.user.user_notification_service.send_confirm_email.queue")
+    @mock.patch("app.services.user.user_notification.send_confirm_email.queue")
     def test_email_confirm_token_with_non_existing_account_no_email_sent(
         self, send_confirm_email, unauthenticated_client, session
     ):
@@ -190,7 +190,7 @@ class TestAccount(object):
         send_confirm_email.assert_not_called()
 
     @mock.patch(
-        "app.services.user.user_notification_service.send_password_reset_confirm_email.queue"
+        "app.services.user.user_notification.send_password_reset_confirm_email.queue"
     )
     def test_password_reset_token_with_non_existing_account_no_email_sent(
         self, send_password_reset_confirm_email, unauthenticated_client, session
@@ -211,7 +211,7 @@ class TestAccount(object):
         send_password_reset_confirm_email.assert_not_called()
 
     @mock.patch(
-        "app.services.user.user_notification_service.send_password_change_confirm_email.queue"
+        "app.services.user.user_notification.send_password_change_confirm_email.queue"
     )
     def test_change_password_with_correct_credentials(
         self, password_changed_email, client, current_user
@@ -235,7 +235,7 @@ class TestAccount(object):
         password_changed_email.assert_called_once()
 
     @mock.patch(
-        "app.services.user.user_notification_service.send_password_change_confirm_email.queue"
+        "app.services.user.user_notification.send_password_change_confirm_email.queue"
     )
     def test_change_password_with_incorrect_password(
         self, password_changed_email, client, current_user
@@ -261,7 +261,7 @@ class TestAccount(object):
         password_changed_email.assert_not_called()
 
     @mock.patch(
-        "app.services.user.user_notification_service.send_email_change_confirm_email.queue"
+        "app.services.user.user_notification.send_email_change_confirm_email.queue"
     )
     def test_change_email_with_correct_credentials(
         self, email_changed_email, client, current_user
@@ -292,7 +292,7 @@ class TestAccount(object):
                 break
 
     @mock.patch(
-        "app.services.user.user_notification_service.send_email_change_confirm_email.queue"
+        "app.services.user.user_notification.send_email_change_confirm_email.queue"
     )
     def test_change_email_to_existing_email(
         self, email_changed_email, client, current_user, session

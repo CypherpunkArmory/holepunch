@@ -5,7 +5,7 @@ from app.utils.errors import AccessDenied, UserError
 import uuid
 
 
-class UserUpdateService:
+class UserUpdate:
     def __init__(self, user: User, **attrs):
         self.user = user
         self.scopes = attrs.pop("scopes")
