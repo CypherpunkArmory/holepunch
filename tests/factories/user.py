@@ -1,11 +1,9 @@
-from factory import Factory, post_generation, Faker
+from factory import Factory, post_generation, Faker, SubFactory, lazy_attribute, Trait
 from faker import Faker as RealFaker
 from pytest_factoryboy import register
 import uuid
 
-from app.models import User
-
-fake = RealFaker()
+from app.models import User, Plan
 
 
 @register
@@ -13,9 +11,11 @@ class UserFactory(Factory):
     class Meta:
         model = User
 
+    class Params:
+        tier = "paid"
+
     email = Faker("email")
     confirmed = True
-    tier = "paid"
 
     @post_generation
     def set_password(user, create, extracted, **kwargs):
@@ -25,16 +25,9 @@ class UserFactory(Factory):
     def set_uuid(user, create, extracted, **kwargs):
         user.uuid = str(uuid.uuid1())
 
-
-@register
-class FreeUserFactory(UserFactory):
-    tier = "free"
-
-
-@register
-class WaitingUserFactory(UserFactory):
-    confirmed = False
-    tier = "waiting"
+    @lazy_attribute
+    def plan(self):
+        return Plan.query.filter_by(name=self.tier).first()
 
 
 @register

@@ -4,7 +4,7 @@ from app import create_app
 from app import db as _db
 from sqlalchemy import event
 from tests.support.client import TestClient
-from tests.factories import user
+from tests.factories import user, plan as plan_factory
 
 
 @pytest.fixture(scope="session")
@@ -19,6 +19,20 @@ def db(app, request):
     with app.app_context():
         _db.drop_all()
         _db.create_all()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def populate_plans(app, db):
+    with app.app_context():
+        plans = ["paid", "free", "waiting", "beta"]
+        sess = _db.create_scoped_session()
+        for plan in plans:
+            p = plan_factory.PlanFactory(**{plan: True})
+            sess.add(p)
+
+        sess.commit()
+        sess.remove()
+        sess.expire_all()
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -86,7 +100,7 @@ def current_user(session):
 
 @pytest.fixture
 def current_free_user(session):
-    u = user.FreeUserFactory()
+    u = user.UserFactory(tier="free")
     session.add(u)
     session.flush()
     return u

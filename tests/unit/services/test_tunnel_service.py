@@ -1,7 +1,7 @@
 import pytest
 
 from app.services.tunnel import TunnelCreationService
-from app.services.user import UserLimit
+from app.models import UserLimit
 from app.utils.errors import TunnelLimitReached
 from tests.factories.subdomain import SubdomainFactory
 from unittest.mock import patch

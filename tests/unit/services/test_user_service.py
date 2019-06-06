@@ -1,5 +1,5 @@
 from tests.factories.user import UserFactory
-from app.services.user import UserLimit
+from app.models import UserLimit
 
 
 class TestUserLimits(object):

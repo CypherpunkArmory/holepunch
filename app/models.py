@@ -3,6 +3,14 @@ from sqlalchemy import types
 from werkzeug import check_password_hash, generate_password_hash
 from app import db
 from sqlalchemy.dialects.postgresql import UUID
+from typing import NamedTuple
+
+
+class UserLimit(NamedTuple):
+    tunnel_count: int
+    bandwidth: int
+    forwards: int
+    reserved_subdomains: int
 
 
 class Subdomain(db.Model):  # type: ignore
@@ -17,17 +25,57 @@ class Subdomain(db.Model):  # type: ignore
         return "<Subdomain {}>".format(self.name)
 
 
+class Plan(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    tunnel_count = db.Column(db.Integer)
+    bandwidth = db.Column(db.Integer)
+    forwards = db.Column(db.Integer)
+    reserved_subdomains = db.Column(db.Integer)
+    cost = db.Column(db.Integer)
+    name = db.Column(db.String, index=True, nullable=False, unique=True)
+    stripe_id = db.Column(db.String, index=True, unique=True)
+    users = db.relationship("User")
+
+    @staticmethod
+    def paid():
+        return Plan.query.filter_by(name="paid").first()
+
+    @staticmethod
+    def free():
+        return Plan.query.filter_by(name="free").first()
+
+    @staticmethod
+    def beta():
+        return Plan.query.filter_by(name="beta").first()
+
+    @staticmethod
+    def waiting():
+        return Plan.query.filter_by(name="waiting").first()
+
+    def __repr__(self):
+        return "<Plan {}>".format(self.name)
+
+    def limits(self):
+        return UserLimit(
+            tunnel_count=self.tunnel_count,
+            bandwidth=self.bandwidth,
+            forwards=self.forwards,
+            reserved_subdomains=self.reserved_subdomains,
+        )
+
+
 class User(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     confirmed = db.Column(db.Boolean)
     email = db.Column(db.String(64), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    tier = db.Column(db.String(64), nullable=False)
     uuid = db.Column(UUID(as_uuid=True), nullable=False, unique=True)
+    plan_id = db.Column(db.Integer, db.ForeignKey("plan.id", name="user_plan_fk"))
     subdomains = db.relationship(
         "Subdomain", back_populates="user", lazy="dynamic", cascade="all, delete"
     )
     tunnels = db.relationship("Tunnel", secondary="subdomain", lazy="dynamic")
+    plan = db.relationship("Plan", lazy="joined")
 
     def __repr__(self):
         return "<User {}>".format(self.email)
@@ -39,9 +87,10 @@ class User(db.Model):  # type: ignore
         return check_password_hash(self.password_hash, password)
 
     def limits(self):
-        import app.services.user as user
+        return self.plan.limits()
 
-        return user.get_user_limits(self.tier)
+    def tier(self):
+        return self.plan.name
 
 
 class Tunnel(db.Model):  # type: ignore
