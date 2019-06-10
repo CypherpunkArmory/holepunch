@@ -4,7 +4,83 @@ version: '2'
 
 output: prefixed
 
+x-deploy-pre: &x-deploy-pre
+  - sh: test -n "{{.ANSIBLE_VAULT_PATH}}"
+    msg: "ANSIBLE_VAULT_PATH must be set"
+  - sh: "[ '{{.WORKSPACE}}' != '<no value>' ]"
+    msg: "WORKSPACE must be set"
+  - sh: "[ \"$(nomad --version)\" = 'Nomad v0.9.1' ]"
+  - sh: host vault.service.city.consul
+    msg: "Could not reach vault, are you on the VPN?"
+  - NOMAD_ADDR=http://nomad:4646 nomad status
+
+x-deploy-vars: &x-deploy-vars
+  HOOK: '{{ default "none" .HOOK }}'
+  ANSIBLE_VAULT_PATH:
+    sh: echo $ANSIBLE_VAULT_PATH
+  ROOT_TOKEN:
+    sh: cat {{.ANSIBLE_VAULT_PATH}}/{{.WORKSPACE}}/vault_recovery | awk '/Initial Root Token:(.*?)/{print $4}'
+  NOMAD_ADDR: http://nomad.service.city.consul:4646
+  # If you are on master, grab the tag that points at master and deploy that
+  # one - if you are on a branch - grab the tag with your branch name and
+  # deploy that.
+  HP_TAG:
+    sh: |
+      if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+        git describe --abbrev=0 --tags --match "holepunch-*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3}'
+      elif [ "{{.HP_TAG}}" != "<no value>" ]; then
+        echo "{{.HP_TAG}}";
+      else
+        git rev-parse --abbrev-ref HEAD
+      fi
+  SSH_TAG:
+    sh: |
+      if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+        git describe --abbrev=0 --tags --match "ssh-*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3}'
+      elif [ "{{.SSH_TAG}}" != "<no value>" ]; then
+        echo "{{.SSH_TAG}}";
+      else
+        git rev-parse --abbrev-ref HEAD
+      fi
+
+x-release-vars: &x-release-vars
+  VER: '{{ default "next" .VER }}'
+  RELEASED_TAG:
+    sh: git describe --abbrev=0 --tags --match "{{.KIND}}*"
+  SOURCE_COMMIT:
+    sh: git rev-parse HEAD
+  NEXT_TAG:
+    sh: |
+      if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+        git describe --abbrev=0 --tags --match "{{.KIND}}*" | awk -F'[.]' '{gsub("{{.KIND}}-",""); print $1"."$2"."$3+1}';
+      elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+        echo "{{.VER}}";
+      else
+        git rev-parse --abbrev-ref HEAD
+      fi
+
+x-release-status: &x-release-status
+  - |
+    if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
+      test $(git describe --abbrev=0 --tags --match "{{.KIND}}*")
+    else
+      exit 1
+    fi
+
+x-cmd-tag-if-master: &x-cmd-tag-if-master |
+  if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
+    git tag {{.KIND}}-{{.NEXT_TAG}};
+    git push origin {{.KIND}}-{{.NEXT_TAG}};
+  fi
+
 tasks:
+  count:
+    cmds:
+      - |
+        for i in $(seq 100); do
+          printf "$(tput sc) $i $(tput rc)";
+        done
+
   setup_db:
     prefix: 'setup_db'
     desc: Setup Database
@@ -13,7 +89,7 @@ tasks:
       - docker-compose rm -f db
       - docker volume rm holepunch_postgres || :
       - docker-compose up -d db
-      - sleep 1
+      - sleep 3
       - docker-compose exec db createdb -U postgres holepunch_development
       - docker-compose exec db createdb -U postgres holepunch_test
       - docker-compose run web flask db upgrade
@@ -46,11 +122,11 @@ tasks:
     desc: Add a domain to your hosts file so you can test
     vars:
       DOMAIN: '{{ default "none" .DOMAIN }}'
-    precondition:
+    preconditions:
       - sh: "[ '{{.DOMAIN}}' != 'none' ]"
         msg: "DOMAIN must be set"
     cmds:
-      - sudo sh -lc 'echo "127.0.0.1	{{.DOMAIN}}" >> /private/etc/hosts'
+      - sudo sh -lc 'echo "127.0.0.1     {{.DOMAIN}}" >> /private/etc/hosts'
 
   start_test_server:
     prefix: 'test_server'
@@ -64,59 +140,27 @@ tasks:
     prefix: 'release-ssh'
     desc: Push an SSH container release to Dockerhub
     vars:
-      VER: '{{ default "next" .VER }}'
-      RELEASED_TAG:
-        sh: git describe --abbrev=0 --tags --match "ssh-*"
-      NEXT_TAG:
-        sh: |
-          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            git describe --abbrev=0 --tags --match "ssh*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3+1}';
-          elif [ "{{.VER}}" != "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            echo "{{.VER}}";
-          else
-            git rev-parse --abbrev-ref HEAD
-          fi
+      KIND: "ssh"
+      <<: *x-release-vars
     sources:
       - ./Dockerfile.ssh
     method: checksum
-    precondition:
+    preconditions:
       - sh: git describe --abbrev=0 --tags --match "ssh-*"
-        msg: "No tags matching ssh- found"
-    status:
-      - |
-        if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
-          test $(git describe --abbrev=0 --tags --match "ssh*")
-        else
-          exit 1
-        fi
+        msg: "No tags matching ssh found"
+    status: *x-release-status
     cmds:
-      - echo "Updating API from {{.RELEASED_TAG}} to ssh-{{.NEXT_TAG}}"
+      - echo "Updating SSH from {{.RELEASED_TAG}} to {{.KIND}}-{{.NEXT_TAG}}"
       - docker build -f Dockerfile.ssh -t cypherpunkarmory/sshd:{{.NEXT_TAG}} .
       - docker push cypherpunkarmory/sshd:{{.NEXT_TAG}}
-      - |
-        if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-          git tag ssh-{{.NEXT_TAG}};
-          git push origin ssh-{{.NEXT_TAG}};
-        fi
+      - *x-cmd-tag-if-master
 
   release:
     prefix: 'release'
     desc: Push a holepunch release to Dockerhub
     vars:
-      VER: '{{ default "next" .VER }}'
-      RELEASED_TAG:
-        sh: git describe --abbrev=0 --tags --match "holepunch-*"
-      NEXT_TAG:
-        sh: |
-          if [ "{{.VER}}" = "next" ] && [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            git describe --abbrev=0 --tags --match "holepunch*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3+1}';
-          elif [ "{{.VER}}" != "next" ]; then
-            echo "{{.VER}}";
-          else
-            git rev-parse --abbrev-ref HEAD
-          fi
-      SOURCE_COMMIT:
-        sh: git rev-parse HEAD
+      KIND: 'holepunch'
+      <<: *x-release-vars
     sources:
       - app/**/*.py
       - migration/**/*.{py,ini,mako}
@@ -125,86 +169,176 @@ tasks:
       - Pipfile.lock
       - Dockerfile.production
     method: checksum
-    precondition:
+    preconditions:
       - sh: git describe --abbrev=0 --tags --match "holepunch-*"
-        msg: "No tags matching holepunch- found"
-    status:
-      - |
-        if [ "$(git rev-parse --abbrev-ref HEAD)" == "master" ]; then
-          test $(git describe --abbrev=0 --tags --match "ssh*")
-        else
-          exit 1
-        fi
+        msg: "No tags matching holepunch found"
+    status: *x-release-status
     cmds:
-      - echo "Updating API from {{.RELEASED_TAG}} to holepunch-{{.NEXT_TAG}}"
+      - echo "Updating API from {{.RELEASED_TAG}} to {{.KIND}}-{{.NEXT_TAG}}"
       - docker build --build-arg APP_NAME=holepunch --build-arg SOURCE_COMMIT={{.SOURCE_COMMIT}} -f Dockerfile.production -t cypherpunkarmory/holepunch-production:{{.NEXT_TAG}} .
       - docker push cypherpunkarmory/holepunch-production:{{.NEXT_TAG}}
-      - |
-        if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-          git tag holepunch-{{.NEXT_TAG}};
-          git push origin holepunch-{{.NEXT_TAG}};
+      - *x-cmd-tag-if-master
+
+  vault-login:
+    prefix: 'vault login'
+    vars:
+      ANSIBLE_VAULT_PATH:
+        sh: echo $ANSIBLE_VAULT_PATH
+      ROOT_TOKEN:
+        sh: cat {{.ANSIBLE_VAULT_PATH}}/{{.WORKSPACE}}/vault_recovery | awk '/Initial Root Token:(.*?)/{print $4}'
+    status:
+      - test -f ~/.vault-token
+    cmds:
+      - VAULT_ADDR=http://vault.service.city.consul:8200 vault login {{.ROOT_TOKEN}}
+
+  cold-deploy:
+    prefix: 'cold deploy'
+    desc: Deploy the holepunch app to a new cluster
+    dir: deploy
+    deps:
+      - task: vault-login
+        vars:
+          ROOT_TOKEN: '{{.ROOT_TOKEN}}'
+          ANSIBLE_VAULT_PATH: '{{.ANSIBLE_VAULT_PATH}}'
+          WORKSPACE: '{{.WORKSPACE}}'
+    status:
+      - nomad job status | grep "holepunch"
+    vars: *x-deploy-vars
+    preconditions: *x-deploy-pre
+    cmds:
+      - terraform workspace select {{.WORKSPACE}}
+      - terraform plan -var "ssh_deploy_version={{.SSH_TAG}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "planfile"
+      - terraform apply "planfile"
+
+  cluster-exec:
+    prefix: 'cluster exec'
+    desc: Execute a task on the cluster
+    silent: true
+    deps:
+      - task: vault-login
+        vars:
+          ROOT_TOKEN: '{{.ROOT_TOKEN}}'
+          ANSIBLE_VAULT_PATH: '{{.ANSIBLE_VAULT_PATH}}'
+          WORKSPACE: '{{.WORKSPACE}}'
+    dir: deploy
+    vars:
+      <<: *x-deploy-vars
+    preconditions:  *x-deploy-pre
+    status:
+      - "[ '{{.HOOK}}' == 'none' ]"
+    cmds:
+      - terraform workspace select {{.WORKSPACE}}
+      - terraform plan -target nomad_job.holepunch_hook -var "hook={{.HOOK}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "hookfile"
+      - if [ "$(terraform show hookfile)" = "This plan does nothing." ]; then
+          echo "No hook to execute";
+          exit 0;
         fi
+      - terraform apply "hookfile"
+      - |
+        export NOMAD_ADDR={{.NOMAD_ADDR}}
+        echo "Waiting for hook to finish."
+        nomad job status holepunch-hook | sed -n '/^Allocations/,$p' | sed -n '1!p'
+        green=$(tput setaf 2)
+        red=$(tput setaf 1)
+        complete=""
+        check_count=0
+        while [ "$complete" != "complete" ] && [ "$complete" != "failed" ]; do
+          alloc=$(nomad job status holepunch-hook | sed -n '/^Allocations/,$p' | sed -n '3p')
+          complete=$(echo -e "$alloc" |  awk '{ print $6 }')
+
+          if [ "$complete" = "complete" ]; then
+            echo $green;
+          fi
+
+          if [ "$complete" = "failed" ]; then
+            echo $red;
+          fi
+
+          echo -e "$alloc"
+          check_count=$((check_count+1))
+          test $check_count -gt 160 && exit 1
+          awk "BEGIN { while (c++ < $check_count) printf \"=\" }" && echo
+          sleep 1
+        done
+        echo $(tput sgr0)
+        echo "--- Task Stdout ---"
+        nomad alloc logs $(echo "$alloc"  | awk '{ print $1 }')
+        echo "--- Task Stderr ---"
+        nomad alloc logs --stderr $(echo "$alloc"  | awk '{ print $1 }')
+        echo -e "\n\n"
+      - nomad job stop -purge holepunch-hook
+      - terraform destroy --auto-approve -target nomad_job.holepunch_hook
+      - rm hookfile
 
   deploy:
     prefix: 'deploy'
     desc: Deploy the holepunch app
     dir: deploy
     deps:
-      - release
-      - release-ssh
-    vars:
-      ANSIBLE_VAULT_PATH:
-        sh: echo $ANSIBLE_VAULT_PATH
-      ROOT_TOKEN:
-        sh: cat {{.ANSIBLE_VAULT_PATH}}/{{.WORKSPACE}}/vault_recovery | awk '/Initial Root Token:(.*?)/{print $4}'
-      # If you are on master, grab the tag that points at master and deploy that
-      # one - if you are on a branch - grab the tag with your branch name and
-      # deploy that.
-      HP_TAG:
-        sh: |
-          if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            git describe --abbrev=0 --tags --match "holepunch-*" | awk -F'[.]' '{gsub("holepunch-",""); print $1"."$2"."$3}'
-          elif [ "{{.HP_TAG}}" != "<no value>" ]; then
-            echo "{{.HP_TAG}}";
-          else
-            git rev-parse --abbrev-ref HEAD
-          fi
-      SSH_TAG:
-        sh: |
-          if [ "$(git rev-parse --abbrev-ref HEAD)" = "master" ]; then
-            git describe --abbrev=0 --tags --match "ssh-*" | awk -F'[.]' '{gsub("ssh-",""); print $1"."$2"."$3}'
-          elif [ "{{.SSH_TAG}}" != "<no value>" ]; then
-            echo "{{.SSH_TAG}}";
-          else
-            git rev-parse --abbrev-ref HEAD
-          fi
-    precondition:
-      - sh: test -n "{{.ANSIBLE_VAULT_PATH}}"
-        msg: "ANSIBLE_VAULT_PATH must be set"
-      - sh: "[ '{{.WORKSPACE}}' != '<no value>' ]"
-        msg: "WORKSPACE must be set"
-      - sh: "[ \"$(nomad --version)\" = 'Nomad v0.8.7' ]"
-      - sh: host vault.service.city.consul
-        msg: "Could not reach vault, are you on the VPN?"
-      - NOMAD_ADDR=http://nomad:4646 nomad status
+      - task: release
+        vars:
+          KIND: "holepunch"
+      - task: release
+        vars:
+          KIND: "ssh"
+      - task: vault-login
+        vars:
+          ROOT_TOKEN: '{{.ROOT_TOKEN}}'
+          ANSIBLE_VAULT_PATH: '{{.ANSIBLE_VAULT_PATH}}'
+          WORKSPACE: '{{.WORKSPACE}}'
+    vars: *x-deploy-vars
+    preconditions: *x-deploy-pre
     cmds:
-      - VAULT_ADDR=http://vault.service.city.consul:8200 vault login {{.ROOT_TOKEN}}
+      - task: cluster-exec
+        vars:
+          HP_TAG: "{{.HP_TAG}}"
+          SSH_TAG: "{{.SSH_TAG}}"
+          ROOT_TOKEN: "{{.ROOT_TOKEN}}"
+          ANSIBLE_VAULT_PATH: "{{.ANSIBLE_VAULT_PATH}}"
+          WORKSPACE: "{{.WORKSPACE}}"
+          HOOK: "{{.HOOK}} pre"
       - terraform workspace select {{.WORKSPACE}}
       - terraform plan -var "ssh_deploy_version={{.SSH_TAG}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "planfile"
-      - echo "$(tput setaf 1) Waiting for cancellation. Ctrl-C now or forever hold your peace!$(tput sgr0)"
-      - sleep 10
       - terraform apply "planfile"
+      - sleep 1
       - |
+        export NOMAD_ADDR={{.NOMAD_ADDR}}
+        echo "Waiting for deploy to green."
         deployment=$(nomad deployment list | grep "running" | awk '{ print $1 }')
-        sgo="nogo"
-        wgo="nogo"
+        green=$(tput setaf 2)
+        service_complete="0"
+        worker_complete="0"
         check_count=0
-        while [ $sgo = "nogo" ] || [ $wgo = "nogo" ]; do
-          echo "Waiting for deploy to green.  Service: $sgo,  Workers: $wgo Check: $check_count"
-          sgo=$(nomad deployment status $deployment | grep "^services" | awk '{if($4==$7){print "go"}else{print "nogo"}}')
-          wgo=$(nomad deployment status $deployment | grep "^workers" | awk '{if($4==$7){print "go"}else{print "nogo"}}')
+        while [ $service_complete = "0" ] || [ $worker_complete = "0" ]; do
+
+          echo $(tput sgr0)
+          service_status=$(nomad deployment status $deployment | grep "^services")
+          service_complete=$(echo -e "$service_status" | awk '{if($4==$7){print "1"}else{print "0"}}')
+          if [ $service_complete == "1" ]; then
+            echo $green
+          fi
+          echo -e "$service_status $(tput sgr0)"
+
+          worker_status=$(nomad deployment status $deployment | grep "^workers")
+          worker_complete=$(echo -e "$worker_status" | awk '{if($4==$7){print "1"}else{print "0"}}')
+          if [ $worker_complete == "1" ]; then
+            echo $green
+          fi
+          echo -e "$worker_status $(tput sgr0)"
+
           check_count=$((check_count+1))
           test $check_count -gt 160 && exit 1
+          awk "BEGIN { while (c++ < $check_count) printf \"=\" }" && echo
           sleep 1
         done
+        echo $(tput sgr0)
         nomad deployment promote $deployment
+      - rm planfile
+      - task: cluster-exec
+        vars:
+          HP_TAG: "{{.HP_TAG}}"
+          SSH_TAG: "{{.SSH_TAG}}"
+          ROOT_TOKEN: "{{.ROOT_TOKEN}}"
+          ANSIBLE_VAULT_PATH: "{{.ANSIBLE_VAULT_PATH}}"
+          WORKSPACE: "{{.WORKSPACE}}"
+          HOOK: "{{.HOOK}} post"

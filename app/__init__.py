@@ -2,7 +2,6 @@ import os
 import traceback
 
 from flask import Flask, request, got_request_exception
-from flask.cli import AppGroup
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy

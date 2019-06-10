@@ -44,6 +44,10 @@ def plan():
 
 @plan.command("stripe_product")
 @with_appcontext
+def create_product_command():
+    create_product()
+
+
 def create_product():
     """ Create Stripe Products for Holepunch """
     for plan in Plan.query.all():
@@ -67,6 +71,10 @@ def create_product():
 
 @plan.command("populate")
 @with_appcontext
+def populate_command():
+    populate()
+
+
 def populate():
     """ Create DB Entries for Holepunch Plans"""
 

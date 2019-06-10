@@ -25,7 +25,7 @@ class Subdomain(db.Model):  # type: ignore
         return "<Subdomain {}>".format(self.name)
 
 
-class Plan(db.Model):
+class Plan(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     tunnel_count = db.Column(db.Integer)
     bandwidth = db.Column(db.Integer)

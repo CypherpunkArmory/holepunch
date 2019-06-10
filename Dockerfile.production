@@ -21,7 +21,6 @@ ENV FLASK_APP "app:create_app('production')"
 
 RUN echo '#!/usr/bin/env bash\n\
 cd /holepunch\n\
-flask db upgrade\n\
 exec gunicorn --ca-certs=/secrets/chain.pem --certfile=/secrets/cert.pem --keyfile=/secrets/key.pem -b :5000 --pythonpath /holepunch --access-logfile - --error-logfile - "app:create_app('\''production'\'')"'\
 >> /${APP_HOME}/start.sh
 
