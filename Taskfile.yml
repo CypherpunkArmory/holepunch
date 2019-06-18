@@ -225,7 +225,7 @@ tasks:
       <<: *x-deploy-vars
     preconditions:  *x-deploy-pre
     status:
-      - "[ '{{.HOOK}}' == 'none' ]"
+      - "[ '{{.HOOK}}' =~ 'none' ]"
     cmds:
       - terraform workspace select {{.WORKSPACE}}
       - terraform plan -target nomad_job.holepunch_hook -var "hook={{.HOOK}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "hookfile"
@@ -289,14 +289,14 @@ tasks:
     vars: *x-deploy-vars
     preconditions: *x-deploy-pre
     cmds:
-      - task: cluster-exec
-        vars:
-          HP_TAG: "{{.HP_TAG}}"
-          SSH_TAG: "{{.SSH_TAG}}"
-          ROOT_TOKEN: "{{.ROOT_TOKEN}}"
-          ANSIBLE_VAULT_PATH: "{{.ANSIBLE_VAULT_PATH}}"
-          WORKSPACE: "{{.WORKSPACE}}"
-          HOOK: "{{.HOOK}} pre"
+      # - task: cluster-exec
+      #   vars:
+      #     HP_TAG: "{{.HP_TAG}}"
+      #     SSH_TAG: "{{.SSH_TAG}}"
+      #     ROOT_TOKEN: "{{.ROOT_TOKEN}}"
+      #     ANSIBLE_VAULT_PATH: "{{.ANSIBLE_VAULT_PATH}}"
+      #     WORKSPACE: "{{.WORKSPACE}}"
+      #     HOOK: "{{.HOOK}} pre"
       - terraform workspace select {{.WORKSPACE}}
       - terraform plan -var "ssh_deploy_version={{.SSH_TAG}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "planfile"
       - terraform apply "planfile"
