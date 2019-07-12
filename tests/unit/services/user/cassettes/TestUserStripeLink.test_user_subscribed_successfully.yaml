@@ -1,0 +1,579 @@
+interactions:
+- request:
+    body: email=user%40holepunch.io&description=Holepunch+User+Id%3A+None
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '63'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - ef119b9d-8d78-43b7-83fc-634b31dc1a83
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.31.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_NKcGfMCjR293qu", "request_duration_ms":
+        136}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.31.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.3", "platform": "Linux-4.9.125-linuxkit-x86_64-with-debian-9.9",
+        "uname": "Linux 9ec6bd3e1c2a 4.9.125-linuxkit #1 SMP Fri Sep 7 08:20:28 UTC
+        2018 x86_64 "}'
+      authorization:
+      - NOKEYFORYOU
+    method: POST
+    uri: https://api.stripe.com/v1/customers
+  response:
+    body:
+      string: "{\n  \"id\": \"cus_FPz9mVGo8ImMND\",\n  \"object\": \"customer\",\n
+        \ \"account_balance\": 0,\n  \"address\": null,\n  \"balance\": 0,\n  \"created\":
+        1562878042,\n  \"currency\": null,\n  \"default_source\": null,\n  \"delinquent\":
+        false,\n  \"description\": \"Holepunch User Id: None\",\n  \"discount\": null,\n
+        \ \"email\": \"user@holepunch.io\",\n  \"invoice_prefix\": \"75C08A86\",\n
+        \ \"invoice_settings\": {\n    \"custom_fields\": null,\n    \"default_payment_method\":
+        null,\n    \"footer\": null\n  },\n  \"livemode\": false,\n  \"metadata\":
+        {\n  },\n  \"name\": null,\n  \"phone\": null,\n  \"preferred_locales\": [\n\n
+        \ ],\n  \"shipping\": null,\n  \"sources\": {\n    \"object\": \"list\",\n
+        \   \"data\": [\n\n    ],\n    \"has_more\": false,\n    \"total_count\":
+        0,\n    \"url\": \"/v1/customers/cus_FPz9mVGo8ImMND/sources\"\n  },\n  \"subscriptions\":
+        {\n    \"object\": \"list\",\n    \"data\": [\n\n    ],\n    \"has_more\":
+        false,\n    \"total_count\": 0,\n    \"url\": \"/v1/customers/cus_FPz9mVGo8ImMND/subscriptions\"\n
+        \ },\n  \"tax_exempt\": \"none\",\n  \"tax_ids\": {\n    \"object\": \"list\",\n
+        \   \"data\": [\n\n    ],\n    \"has_more\": false,\n    \"total_count\":
+        0,\n    \"url\": \"/v1/customers/cus_FPz9mVGo8ImMND/tax_ids\"\n  },\n  \"tax_info\":
+        null,\n  \"tax_info_verification\": null\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '1153'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 11 Jul 2019 20:47:23 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - ef119b9d-8d78-43b7-83fc-634b31dc1a83
+      original-request:
+      - req_d6cz9vXVvoXYRg
+      request-id:
+      - req_d6cz9vXVvoXYRg
+      stripe-version:
+      - '2019-03-14'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: customer=cus_FPz9mVGo8ImMND
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '27'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - 566902f9-d77b-4fee-8800-3637282b6c5a
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.31.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_d6cz9vXVvoXYRg", "request_duration_ms":
+        225}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.31.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.3", "platform": "Linux-4.9.125-linuxkit-x86_64-with-debian-9.9",
+        "uname": "Linux 9ec6bd3e1c2a 4.9.125-linuxkit #1 SMP Fri Sep 7 08:20:28 UTC
+        2018 x86_64 "}'
+      authorization:
+      - NOKEYFORYOU
+    method: POST
+    uri: https://api.stripe.com/v1/payment_methods/pm_card_visa/attach
+  response:
+    body:
+      string: "{\n  \"id\": \"pm_1Ev9AlFWLfbqapoHEJAnh1cO\",\n  \"object\": \"payment_method\",\n
+        \ \"billing_details\": {\n    \"address\": {\n      \"city\": null,\n      \"country\":
+        null,\n      \"line1\": null,\n      \"line2\": null,\n      \"postal_code\":
+        null,\n      \"state\": null\n    },\n    \"email\": null,\n    \"name\":
+        null,\n    \"phone\": null\n  },\n  \"card\": {\n    \"brand\": \"visa\",\n
+        \   \"checks\": {\n      \"address_line1_check\": null,\n      \"address_postal_code_check\":
+        null,\n      \"cvc_check\": null\n    },\n    \"country\": \"US\",\n    \"exp_month\":
+        7,\n    \"exp_year\": 2020,\n    \"fingerprint\": \"5WF0F0bdzuufzLej\",\n
+        \   \"funding\": \"credit\",\n    \"generated_from\": null,\n    \"last4\":
+        \"4242\",\n    \"three_d_secure_usage\": {\n      \"supported\": true\n    },\n
+        \   \"wallet\": null\n  },\n  \"created\": 1562878043,\n  \"customer\": \"cus_FPz9mVGo8ImMND\",\n
+        \ \"livemode\": false,\n  \"metadata\": {\n  },\n  \"type\": \"card\"\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '849'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 11 Jul 2019 20:47:23 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - 566902f9-d77b-4fee-8800-3637282b6c5a
+      original-request:
+      - req_kZISQUaGio4jSh
+      request-id:
+      - req_kZISQUaGio4jSh
+      stripe-version:
+      - '2019-03-14'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: customer=cus_FPz9mVGo8ImMND&default_payment_method=pm_1Ev9AlFWLfbqapoHEJAnh1cO&items[0][plan]=plan_FHjqReterVJV8l&expand[0]=latest_invoice.payment_intent
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '153'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - e2992f62-8767-4e57-8008-0156bfe962eb
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.31.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_kZISQUaGio4jSh", "request_duration_ms":
+        469}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.31.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.3", "platform": "Linux-4.9.125-linuxkit-x86_64-with-debian-9.9",
+        "uname": "Linux 9ec6bd3e1c2a 4.9.125-linuxkit #1 SMP Fri Sep 7 08:20:28 UTC
+        2018 x86_64 "}'
+      authorization:
+      - NOKEYFORYOU
+    method: POST
+    uri: https://api.stripe.com/v1/subscriptions
+  response:
+    body:
+      string: "{\n  \"id\": \"sub_FPz9cyI0cAl5T9\",\n  \"object\": \"subscription\",\n
+        \ \"application_fee_percent\": null,\n  \"billing\": \"charge_automatically\",\n
+        \ \"billing_cycle_anchor\": 1562878043,\n  \"billing_thresholds\": null,\n
+        \ \"cancel_at\": null,\n  \"cancel_at_period_end\": false,\n  \"canceled_at\":
+        null,\n  \"collection_method\": \"charge_automatically\",\n  \"created\":
+        1562878043,\n  \"current_period_end\": 1565556443,\n  \"current_period_start\":
+        1562878043,\n  \"customer\": \"cus_FPz9mVGo8ImMND\",\n  \"days_until_due\":
+        null,\n  \"default_payment_method\": \"pm_1Ev9AlFWLfbqapoHEJAnh1cO\",\n  \"default_source\":
+        null,\n  \"default_tax_rates\": [\n\n  ],\n  \"discount\": null,\n  \"ended_at\":
+        null,\n  \"items\": {\n    \"object\": \"list\",\n    \"data\": [\n      {\n
+        \       \"id\": \"si_FPz9vFQ8qwDcbz\",\n        \"object\": \"subscription_item\",\n
+        \       \"billing_thresholds\": null,\n        \"created\": 1562878044,\n
+        \       \"metadata\": {\n        },\n        \"plan\": {\n          \"id\":
+        \"plan_FHjqReterVJV8l\",\n          \"object\": \"plan\",\n          \"active\":
+        true,\n          \"aggregate_usage\": null,\n          \"amount\": 999,\n
+        \         \"billing_scheme\": \"per_unit\",\n          \"created\": 1560976015,\n
+        \         \"currency\": \"usd\",\n          \"interval\": \"month\",\n          \"interval_count\":
+        1,\n          \"livemode\": false,\n          \"metadata\": {\n          },\n
+        \         \"nickname\": \"Holepunch Service: paid\",\n          \"product\":
+        \"holepunch\",\n          \"tiers\": null,\n          \"tiers_mode\": null,\n
+        \         \"transform_usage\": null,\n          \"trial_period_days\": null,\n
+        \         \"usage_type\": \"licensed\"\n        },\n        \"quantity\":
+        1,\n        \"subscription\": \"sub_FPz9cyI0cAl5T9\",\n        \"tax_rates\":
+        [\n\n        ]\n      }\n    ],\n    \"has_more\": false,\n    \"total_count\":
+        1,\n    \"url\": \"/v1/subscription_items?subscription=sub_FPz9cyI0cAl5T9\"\n
+        \ },\n  \"latest_invoice\": {\n    \"id\": \"in_1Ev9AlFWLfbqapoHvMLeDUqv\",\n
+        \   \"object\": \"invoice\",\n    \"account_country\": \"US\",\n    \"account_name\":
+        \"ORB.HOUSE, LLC\",\n    \"amount_due\": 999,\n    \"amount_paid\": 999,\n
+        \   \"amount_remaining\": 0,\n    \"application_fee_amount\": null,\n    \"attempt_count\":
+        1,\n    \"attempted\": true,\n    \"auto_advance\": false,\n    \"billing\":
+        \"charge_automatically\",\n    \"billing_reason\": \"subscription_create\",\n
+        \   \"charge\": \"ch_1Ev9AlFWLfbqapoHRwpQtjP5\",\n    \"collection_method\":
+        \"charge_automatically\",\n    \"created\": 1562878043,\n    \"currency\":
+        \"usd\",\n    \"custom_fields\": null,\n    \"customer\": \"cus_FPz9mVGo8ImMND\",\n
+        \   \"customer_address\": null,\n    \"customer_email\": \"user@holepunch.io\",\n
+        \   \"customer_name\": null,\n    \"customer_phone\": null,\n    \"customer_shipping\":
+        null,\n    \"customer_tax_exempt\": \"none\",\n    \"customer_tax_ids\": [\n\n
+        \   ],\n    \"default_payment_method\": null,\n    \"default_source\": null,\n
+        \   \"default_tax_rates\": [\n\n    ],\n    \"description\": null,\n    \"discount\":
+        null,\n    \"due_date\": null,\n    \"ending_balance\": 0,\n    \"footer\":
+        null,\n    \"hosted_invoice_url\": \"https://pay.stripe.com/invoice/invst_eHkIw93qACJ8fJjvCITPfzZQk2\",\n
+        \   \"invoice_pdf\": \"https://pay.stripe.com/invoice/invst_eHkIw93qACJ8fJjvCITPfzZQk2/pdf\",\n
+        \   \"lines\": {\n      \"object\": \"list\",\n      \"data\": [\n        {\n
+        \         \"id\": \"sli_cc5925a6f059f6\",\n          \"object\": \"line_item\",\n
+        \         \"amount\": 999,\n          \"currency\": \"usd\",\n          \"description\":
+        \"1 \xD7 Holepunch.io (at $9.99 / month)\",\n          \"discountable\": true,\n
+        \         \"livemode\": false,\n          \"metadata\": {\n          },\n
+        \         \"period\": {\n            \"end\": 1565556443,\n            \"start\":
+        1562878043\n          },\n          \"plan\": {\n            \"id\": \"plan_FHjqReterVJV8l\",\n
+        \           \"object\": \"plan\",\n            \"active\": true,\n            \"aggregate_usage\":
+        null,\n            \"amount\": 999,\n            \"billing_scheme\": \"per_unit\",\n
+        \           \"created\": 1560976015,\n            \"currency\": \"usd\",\n
+        \           \"interval\": \"month\",\n            \"interval_count\": 1,\n
+        \           \"livemode\": false,\n            \"metadata\": {\n            },\n
+        \           \"nickname\": \"Holepunch Service: paid\",\n            \"product\":
+        \"holepunch\",\n            \"tiers\": null,\n            \"tiers_mode\":
+        null,\n            \"transform_usage\": null,\n            \"trial_period_days\":
+        null,\n            \"usage_type\": \"licensed\"\n          },\n          \"proration\":
+        false,\n          \"quantity\": 1,\n          \"subscription\": \"sub_FPz9cyI0cAl5T9\",\n
+        \         \"subscription_item\": \"si_FPz9vFQ8qwDcbz\",\n          \"tax_amounts\":
+        [\n\n          ],\n          \"tax_rates\": [\n\n          ],\n          \"type\":
+        \"subscription\"\n        }\n      ],\n      \"has_more\": false,\n      \"total_count\":
+        1,\n      \"url\": \"/v1/invoices/in_1Ev9AlFWLfbqapoHvMLeDUqv/lines\"\n    },\n
+        \   \"livemode\": false,\n    \"metadata\": {\n    },\n    \"next_payment_attempt\":
+        null,\n    \"number\": \"75C08A86-0001\",\n    \"paid\": true,\n    \"payment_intent\":
+        {\n      \"id\": \"pi_1Ev9AlFWLfbqapoHGftSf3pP\",\n      \"object\": \"payment_intent\",\n
+        \     \"amount\": 999,\n      \"amount_capturable\": 0,\n      \"amount_received\":
+        999,\n      \"application\": null,\n      \"application_fee_amount\": null,\n
+        \     \"canceled_at\": null,\n      \"cancellation_reason\": null,\n      \"capture_method\":
+        \"automatic\",\n      \"charges\": {\n        \"object\": \"list\",\n        \"data\":
+        [\n          {\n            \"id\": \"ch_1Ev9AlFWLfbqapoHRwpQtjP5\",\n            \"object\":
+        \"charge\",\n            \"amount\": 999,\n            \"amount_refunded\":
+        0,\n            \"application\": null,\n            \"application_fee\": null,\n
+        \           \"application_fee_amount\": null,\n            \"balance_transaction\":
+        \"txn_1Ev9AmFWLfbqapoHauHAxhkc\",\n            \"billing_details\": {\n              \"address\":
+        {\n                \"city\": null,\n                \"country\": null,\n                \"line1\":
+        null,\n                \"line2\": null,\n                \"postal_code\":
+        null,\n                \"state\": null\n              },\n              \"email\":
+        null,\n              \"name\": null,\n              \"phone\": null\n            },\n
+        \           \"captured\": true,\n            \"created\": 1562878043,\n            \"currency\":
+        \"usd\",\n            \"customer\": \"cus_FPz9mVGo8ImMND\",\n            \"description\":
+        \"Payment for invoice 75C08A86-0001\",\n            \"destination\": null,\n
+        \           \"dispute\": null,\n            \"failure_code\": null,\n            \"failure_message\":
+        null,\n            \"fraud_details\": {\n            },\n            \"invoice\":
+        \"in_1Ev9AlFWLfbqapoHvMLeDUqv\",\n            \"livemode\": false,\n            \"metadata\":
+        {\n            },\n            \"on_behalf_of\": null,\n            \"order\":
+        null,\n            \"outcome\": {\n              \"network_status\": \"approved_by_network\",\n
+        \             \"reason\": null,\n              \"risk_level\": \"normal\",\n
+        \             \"risk_score\": 5,\n              \"seller_message\": \"Payment
+        complete.\",\n              \"type\": \"authorized\"\n            },\n            \"paid\":
+        true,\n            \"payment_intent\": \"pi_1Ev9AlFWLfbqapoHGftSf3pP\",\n
+        \           \"payment_method\": \"pm_1Ev9AlFWLfbqapoHEJAnh1cO\",\n            \"payment_method_details\":
+        {\n              \"card\": {\n                \"brand\": \"visa\",\n                \"checks\":
+        {\n                  \"address_line1_check\": null,\n                  \"address_postal_code_check\":
+        null,\n                  \"cvc_check\": null\n                },\n                \"country\":
+        \"US\",\n                \"exp_month\": 7,\n                \"exp_year\":
+        2020,\n                \"fingerprint\": \"5WF0F0bdzuufzLej\",\n                \"funding\":
+        \"credit\",\n                \"last4\": \"4242\",\n                \"three_d_secure\":
+        null,\n                \"wallet\": null\n              },\n              \"type\":
+        \"card\"\n            },\n            \"receipt_email\": null,\n            \"receipt_number\":
+        null,\n            \"receipt_url\": \"https://pay.stripe.com/receipts/acct_1EO9vYFWLfbqapoH/ch_1Ev9AlFWLfbqapoHRwpQtjP5/rcpt_FPz9vwAfjJYi9EoslzyLP8IE5hPbEaE\",\n
+        \           \"refunded\": false,\n            \"refunds\": {\n              \"object\":
+        \"list\",\n              \"data\": [\n\n              ],\n              \"has_more\":
+        false,\n              \"total_count\": 0,\n              \"url\": \"/v1/charges/ch_1Ev9AlFWLfbqapoHRwpQtjP5/refunds\"\n
+        \           },\n            \"review\": null,\n            \"shipping\": null,\n
+        \           \"source\": null,\n            \"source_transfer\": null,\n            \"statement_descriptor\":
+        null,\n            \"status\": \"succeeded\",\n            \"transfer_data\":
+        null,\n            \"transfer_group\": null\n          }\n        ],\n        \"has_more\":
+        false,\n        \"total_count\": 1,\n        \"url\": \"/v1/charges?payment_intent=pi_1Ev9AlFWLfbqapoHGftSf3pP\"\n
+        \     },\n      \"client_secret\": \"pi_1Ev9AlFWLfbqapoHGftSf3pP_secret_EL3n3Xkv1X9LEzl7HKrbrwwDd\",\n
+        \     \"confirmation_method\": \"automatic\",\n      \"created\": 1562878043,\n
+        \     \"currency\": \"usd\",\n      \"customer\": \"cus_FPz9mVGo8ImMND\",\n
+        \     \"description\": \"Payment for invoice 75C08A86-0001\",\n      \"invoice\":
+        \"in_1Ev9AlFWLfbqapoHvMLeDUqv\",\n      \"last_payment_error\": null,\n      \"livemode\":
+        false,\n      \"metadata\": {\n      },\n      \"next_action\": null,\n      \"on_behalf_of\":
+        null,\n      \"payment_method\": \"pm_1Ev9AlFWLfbqapoHEJAnh1cO\",\n      \"payment_method_types\":
+        [\n        \"card\"\n      ],\n      \"receipt_email\": null,\n      \"review\":
+        null,\n      \"setup_future_usage\": null,\n      \"shipping\": null,\n      \"source\":
+        null,\n      \"statement_descriptor\": null,\n      \"status\": \"succeeded\",\n
+        \     \"transfer_data\": null,\n      \"transfer_group\": null\n    },\n    \"period_end\":
+        1562878043,\n    \"period_start\": 1562878043,\n    \"post_payment_credit_notes_amount\":
+        0,\n    \"pre_payment_credit_notes_amount\": 0,\n    \"receipt_number\": null,\n
+        \   \"starting_balance\": 0,\n    \"statement_descriptor\": null,\n    \"status\":
+        \"paid\",\n    \"status_transitions\": {\n      \"finalized_at\": 1562878043,\n
+        \     \"marked_uncollectible_at\": null,\n      \"paid_at\": 1562878044,\n
+        \     \"voided_at\": null\n    },\n    \"subscription\": \"sub_FPz9cyI0cAl5T9\",\n
+        \   \"subtotal\": 999,\n    \"tax\": null,\n    \"tax_percent\": null,\n    \"total\":
+        999,\n    \"total_tax_amounts\": [\n\n    ],\n    \"webhooks_delivered_at\":
+        null\n  },\n  \"livemode\": false,\n  \"metadata\": {\n  },\n  \"plan\": {\n
+        \   \"id\": \"plan_FHjqReterVJV8l\",\n    \"object\": \"plan\",\n    \"active\":
+        true,\n    \"aggregate_usage\": null,\n    \"amount\": 999,\n    \"billing_scheme\":
+        \"per_unit\",\n    \"created\": 1560976015,\n    \"currency\": \"usd\",\n
+        \   \"interval\": \"month\",\n    \"interval_count\": 1,\n    \"livemode\":
+        false,\n    \"metadata\": {\n    },\n    \"nickname\": \"Holepunch Service:
+        paid\",\n    \"product\": \"holepunch\",\n    \"tiers\": null,\n    \"tiers_mode\":
+        null,\n    \"transform_usage\": null,\n    \"trial_period_days\": null,\n
+        \   \"usage_type\": \"licensed\"\n  },\n  \"quantity\": 1,\n  \"schedule\":
+        null,\n  \"start\": 1562878043,\n  \"start_date\": 1562878043,\n  \"status\":
+        \"active\",\n  \"tax_percent\": null,\n  \"trial_end\": null,\n  \"trial_start\":
+        null\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '10589'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 11 Jul 2019 20:47:25 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - e2992f62-8767-4e57-8008-0156bfe962eb
+      original-request:
+      - req_G09b6n19eqBZBI
+      request-id:
+      - req_G09b6n19eqBZBI
+      stripe-version:
+      - '2019-03-14'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: customer=cus_FPz9mVGo8ImMND&default_payment_method=pm_1Ev9AlFWLfbqapoHEJAnh1cO&items[0][plan]=plan_FHjqReterVJV8l&expand[0]=latest_invoice.payment_intent
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '153'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - b9c41fdb-07cb-4bed-add5-3acb76df5a6b
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.31.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_G09b6n19eqBZBI", "request_duration_ms":
+        1487}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.31.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.3", "platform": "Linux-4.9.125-linuxkit-x86_64-with-debian-9.9",
+        "uname": "Linux 9ec6bd3e1c2a 4.9.125-linuxkit #1 SMP Fri Sep 7 08:20:28 UTC
+        2018 x86_64 "}'
+      authorization:
+      - NOKEYFORYOU
+    method: POST
+    uri: https://api.stripe.com/v1/subscriptions
+  response:
+    body:
+      string: "{\n  \"id\": \"sub_FPz9c49FV6kFuP\",\n  \"object\": \"subscription\",\n
+        \ \"application_fee_percent\": null,\n  \"billing\": \"charge_automatically\",\n
+        \ \"billing_cycle_anchor\": 1562878045,\n  \"billing_thresholds\": null,\n
+        \ \"cancel_at\": null,\n  \"cancel_at_period_end\": false,\n  \"canceled_at\":
+        null,\n  \"collection_method\": \"charge_automatically\",\n  \"created\":
+        1562878045,\n  \"current_period_end\": 1565556445,\n  \"current_period_start\":
+        1562878045,\n  \"customer\": \"cus_FPz9mVGo8ImMND\",\n  \"days_until_due\":
+        null,\n  \"default_payment_method\": \"pm_1Ev9AlFWLfbqapoHEJAnh1cO\",\n  \"default_source\":
+        null,\n  \"default_tax_rates\": [\n\n  ],\n  \"discount\": null,\n  \"ended_at\":
+        null,\n  \"items\": {\n    \"object\": \"list\",\n    \"data\": [\n      {\n
+        \       \"id\": \"si_FPz9EB90GCvwt0\",\n        \"object\": \"subscription_item\",\n
+        \       \"billing_thresholds\": null,\n        \"created\": 1562878045,\n
+        \       \"metadata\": {\n        },\n        \"plan\": {\n          \"id\":
+        \"plan_FHjqReterVJV8l\",\n          \"object\": \"plan\",\n          \"active\":
+        true,\n          \"aggregate_usage\": null,\n          \"amount\": 999,\n
+        \         \"billing_scheme\": \"per_unit\",\n          \"created\": 1560976015,\n
+        \         \"currency\": \"usd\",\n          \"interval\": \"month\",\n          \"interval_count\":
+        1,\n          \"livemode\": false,\n          \"metadata\": {\n          },\n
+        \         \"nickname\": \"Holepunch Service: paid\",\n          \"product\":
+        \"holepunch\",\n          \"tiers\": null,\n          \"tiers_mode\": null,\n
+        \         \"transform_usage\": null,\n          \"trial_period_days\": null,\n
+        \         \"usage_type\": \"licensed\"\n        },\n        \"quantity\":
+        1,\n        \"subscription\": \"sub_FPz9c49FV6kFuP\",\n        \"tax_rates\":
+        [\n\n        ]\n      }\n    ],\n    \"has_more\": false,\n    \"total_count\":
+        1,\n    \"url\": \"/v1/subscription_items?subscription=sub_FPz9c49FV6kFuP\"\n
+        \ },\n  \"latest_invoice\": {\n    \"id\": \"in_1Ev9AnFWLfbqapoHUdcUlmLY\",\n
+        \   \"object\": \"invoice\",\n    \"account_country\": \"US\",\n    \"account_name\":
+        \"ORB.HOUSE, LLC\",\n    \"amount_due\": 999,\n    \"amount_paid\": 999,\n
+        \   \"amount_remaining\": 0,\n    \"application_fee_amount\": null,\n    \"attempt_count\":
+        1,\n    \"attempted\": true,\n    \"auto_advance\": false,\n    \"billing\":
+        \"charge_automatically\",\n    \"billing_reason\": \"subscription_create\",\n
+        \   \"charge\": \"ch_1Ev9AnFWLfbqapoHqln5FUf2\",\n    \"collection_method\":
+        \"charge_automatically\",\n    \"created\": 1562878045,\n    \"currency\":
+        \"usd\",\n    \"custom_fields\": null,\n    \"customer\": \"cus_FPz9mVGo8ImMND\",\n
+        \   \"customer_address\": null,\n    \"customer_email\": \"user@holepunch.io\",\n
+        \   \"customer_name\": null,\n    \"customer_phone\": null,\n    \"customer_shipping\":
+        null,\n    \"customer_tax_exempt\": \"none\",\n    \"customer_tax_ids\": [\n\n
+        \   ],\n    \"default_payment_method\": null,\n    \"default_source\": null,\n
+        \   \"default_tax_rates\": [\n\n    ],\n    \"description\": null,\n    \"discount\":
+        null,\n    \"due_date\": null,\n    \"ending_balance\": 0,\n    \"footer\":
+        null,\n    \"hosted_invoice_url\": \"https://pay.stripe.com/invoice/invst_Jca9fvyfxLJOvJv8BEfm3ibBic\",\n
+        \   \"invoice_pdf\": \"https://pay.stripe.com/invoice/invst_Jca9fvyfxLJOvJv8BEfm3ibBic/pdf\",\n
+        \   \"lines\": {\n      \"object\": \"list\",\n      \"data\": [\n        {\n
+        \         \"id\": \"sli_2675f895ad6a69\",\n          \"object\": \"line_item\",\n
+        \         \"amount\": 999,\n          \"currency\": \"usd\",\n          \"description\":
+        \"1 \xD7 Holepunch.io (at $9.99 / month)\",\n          \"discountable\": true,\n
+        \         \"livemode\": false,\n          \"metadata\": {\n          },\n
+        \         \"period\": {\n            \"end\": 1565556445,\n            \"start\":
+        1562878045\n          },\n          \"plan\": {\n            \"id\": \"plan_FHjqReterVJV8l\",\n
+        \           \"object\": \"plan\",\n            \"active\": true,\n            \"aggregate_usage\":
+        null,\n            \"amount\": 999,\n            \"billing_scheme\": \"per_unit\",\n
+        \           \"created\": 1560976015,\n            \"currency\": \"usd\",\n
+        \           \"interval\": \"month\",\n            \"interval_count\": 1,\n
+        \           \"livemode\": false,\n            \"metadata\": {\n            },\n
+        \           \"nickname\": \"Holepunch Service: paid\",\n            \"product\":
+        \"holepunch\",\n            \"tiers\": null,\n            \"tiers_mode\":
+        null,\n            \"transform_usage\": null,\n            \"trial_period_days\":
+        null,\n            \"usage_type\": \"licensed\"\n          },\n          \"proration\":
+        false,\n          \"quantity\": 1,\n          \"subscription\": \"sub_FPz9c49FV6kFuP\",\n
+        \         \"subscription_item\": \"si_FPz9EB90GCvwt0\",\n          \"tax_amounts\":
+        [\n\n          ],\n          \"tax_rates\": [\n\n          ],\n          \"type\":
+        \"subscription\"\n        }\n      ],\n      \"has_more\": false,\n      \"total_count\":
+        1,\n      \"url\": \"/v1/invoices/in_1Ev9AnFWLfbqapoHUdcUlmLY/lines\"\n    },\n
+        \   \"livemode\": false,\n    \"metadata\": {\n    },\n    \"next_payment_attempt\":
+        null,\n    \"number\": \"75C08A86-0002\",\n    \"paid\": true,\n    \"payment_intent\":
+        {\n      \"id\": \"pi_1Ev9AnFWLfbqapoHKaK5GuQ8\",\n      \"object\": \"payment_intent\",\n
+        \     \"amount\": 999,\n      \"amount_capturable\": 0,\n      \"amount_received\":
+        999,\n      \"application\": null,\n      \"application_fee_amount\": null,\n
+        \     \"canceled_at\": null,\n      \"cancellation_reason\": null,\n      \"capture_method\":
+        \"automatic\",\n      \"charges\": {\n        \"object\": \"list\",\n        \"data\":
+        [\n          {\n            \"id\": \"ch_1Ev9AnFWLfbqapoHqln5FUf2\",\n            \"object\":
+        \"charge\",\n            \"amount\": 999,\n            \"amount_refunded\":
+        0,\n            \"application\": null,\n            \"application_fee\": null,\n
+        \           \"application_fee_amount\": null,\n            \"balance_transaction\":
+        \"txn_1Ev9AnFWLfbqapoHRHgR0rVX\",\n            \"billing_details\": {\n              \"address\":
+        {\n                \"city\": null,\n                \"country\": null,\n                \"line1\":
+        null,\n                \"line2\": null,\n                \"postal_code\":
+        null,\n                \"state\": null\n              },\n              \"email\":
+        null,\n              \"name\": null,\n              \"phone\": null\n            },\n
+        \           \"captured\": true,\n            \"created\": 1562878045,\n            \"currency\":
+        \"usd\",\n            \"customer\": \"cus_FPz9mVGo8ImMND\",\n            \"description\":
+        \"Payment for invoice 75C08A86-0002\",\n            \"destination\": null,\n
+        \           \"dispute\": null,\n            \"failure_code\": null,\n            \"failure_message\":
+        null,\n            \"fraud_details\": {\n            },\n            \"invoice\":
+        \"in_1Ev9AnFWLfbqapoHUdcUlmLY\",\n            \"livemode\": false,\n            \"metadata\":
+        {\n            },\n            \"on_behalf_of\": null,\n            \"order\":
+        null,\n            \"outcome\": {\n              \"network_status\": \"approved_by_network\",\n
+        \             \"reason\": null,\n              \"risk_level\": \"normal\",\n
+        \             \"risk_score\": 62,\n              \"seller_message\": \"Payment
+        complete.\",\n              \"type\": \"authorized\"\n            },\n            \"paid\":
+        true,\n            \"payment_intent\": \"pi_1Ev9AnFWLfbqapoHKaK5GuQ8\",\n
+        \           \"payment_method\": \"pm_1Ev9AlFWLfbqapoHEJAnh1cO\",\n            \"payment_method_details\":
+        {\n              \"card\": {\n                \"brand\": \"visa\",\n                \"checks\":
+        {\n                  \"address_line1_check\": null,\n                  \"address_postal_code_check\":
+        null,\n                  \"cvc_check\": null\n                },\n                \"country\":
+        \"US\",\n                \"exp_month\": 7,\n                \"exp_year\":
+        2020,\n                \"fingerprint\": \"5WF0F0bdzuufzLej\",\n                \"funding\":
+        \"credit\",\n                \"last4\": \"4242\",\n                \"three_d_secure\":
+        null,\n                \"wallet\": null\n              },\n              \"type\":
+        \"card\"\n            },\n            \"receipt_email\": null,\n            \"receipt_number\":
+        null,\n            \"receipt_url\": \"https://pay.stripe.com/receipts/acct_1EO9vYFWLfbqapoH/ch_1Ev9AnFWLfbqapoHqln5FUf2/rcpt_FPz9kgmNUx8AD8ZNXl9yfmUqdVktJrN\",\n
+        \           \"refunded\": false,\n            \"refunds\": {\n              \"object\":
+        \"list\",\n              \"data\": [\n\n              ],\n              \"has_more\":
+        false,\n              \"total_count\": 0,\n              \"url\": \"/v1/charges/ch_1Ev9AnFWLfbqapoHqln5FUf2/refunds\"\n
+        \           },\n            \"review\": null,\n            \"shipping\": null,\n
+        \           \"source\": null,\n            \"source_transfer\": null,\n            \"statement_descriptor\":
+        null,\n            \"status\": \"succeeded\",\n            \"transfer_data\":
+        null,\n            \"transfer_group\": null\n          }\n        ],\n        \"has_more\":
+        false,\n        \"total_count\": 1,\n        \"url\": \"/v1/charges?payment_intent=pi_1Ev9AnFWLfbqapoHKaK5GuQ8\"\n
+        \     },\n      \"client_secret\": \"pi_1Ev9AnFWLfbqapoHKaK5GuQ8_secret_QV1WYYHQrl9R3BmPe9f2hrCsn\",\n
+        \     \"confirmation_method\": \"automatic\",\n      \"created\": 1562878045,\n
+        \     \"currency\": \"usd\",\n      \"customer\": \"cus_FPz9mVGo8ImMND\",\n
+        \     \"description\": \"Payment for invoice 75C08A86-0002\",\n      \"invoice\":
+        \"in_1Ev9AnFWLfbqapoHUdcUlmLY\",\n      \"last_payment_error\": null,\n      \"livemode\":
+        false,\n      \"metadata\": {\n      },\n      \"next_action\": null,\n      \"on_behalf_of\":
+        null,\n      \"payment_method\": \"pm_1Ev9AlFWLfbqapoHEJAnh1cO\",\n      \"payment_method_types\":
+        [\n        \"card\"\n      ],\n      \"receipt_email\": null,\n      \"review\":
+        null,\n      \"setup_future_usage\": null,\n      \"shipping\": null,\n      \"source\":
+        null,\n      \"statement_descriptor\": null,\n      \"status\": \"succeeded\",\n
+        \     \"transfer_data\": null,\n      \"transfer_group\": null\n    },\n    \"period_end\":
+        1562878045,\n    \"period_start\": 1562878045,\n    \"post_payment_credit_notes_amount\":
+        0,\n    \"pre_payment_credit_notes_amount\": 0,\n    \"receipt_number\": null,\n
+        \   \"starting_balance\": 0,\n    \"statement_descriptor\": null,\n    \"status\":
+        \"paid\",\n    \"status_transitions\": {\n      \"finalized_at\": 1562878045,\n
+        \     \"marked_uncollectible_at\": null,\n      \"paid_at\": 1562878045,\n
+        \     \"voided_at\": null\n    },\n    \"subscription\": \"sub_FPz9c49FV6kFuP\",\n
+        \   \"subtotal\": 999,\n    \"tax\": null,\n    \"tax_percent\": null,\n    \"total\":
+        999,\n    \"total_tax_amounts\": [\n\n    ],\n    \"webhooks_delivered_at\":
+        null\n  },\n  \"livemode\": false,\n  \"metadata\": {\n  },\n  \"plan\": {\n
+        \   \"id\": \"plan_FHjqReterVJV8l\",\n    \"object\": \"plan\",\n    \"active\":
+        true,\n    \"aggregate_usage\": null,\n    \"amount\": 999,\n    \"billing_scheme\":
+        \"per_unit\",\n    \"created\": 1560976015,\n    \"currency\": \"usd\",\n
+        \   \"interval\": \"month\",\n    \"interval_count\": 1,\n    \"livemode\":
+        false,\n    \"metadata\": {\n    },\n    \"nickname\": \"Holepunch Service:
+        paid\",\n    \"product\": \"holepunch\",\n    \"tiers\": null,\n    \"tiers_mode\":
+        null,\n    \"transform_usage\": null,\n    \"trial_period_days\": null,\n
+        \   \"usage_type\": \"licensed\"\n  },\n  \"quantity\": 1,\n  \"schedule\":
+        null,\n  \"start\": 1562878045,\n  \"start_date\": 1562878045,\n  \"status\":
+        \"active\",\n  \"tax_percent\": null,\n  \"trial_end\": null,\n  \"trial_start\":
+        null\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '10590'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 11 Jul 2019 20:47:26 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - b9c41fdb-07cb-4bed-add5-3acb76df5a6b
+      original-request:
+      - req_dHiNj1wAmNiGM7
+      request-id:
+      - req_dHiNj1wAmNiGM7
+      stripe-version:
+      - '2019-03-14'
+    status:
+      code: 200
+      message: OK
+version: 1
