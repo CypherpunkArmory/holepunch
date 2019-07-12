@@ -38,6 +38,9 @@ class TestConfig(Config):
     DNS_ADDR = os.environ.get("DNS_ADDR", default="127.0.0.11")
     STRIPE_KEY = os.environ.get("STRIPE_KEY", default="notconfigured")
     STRIPE_ENDPOINT = os.environ.get("STRIPE_ENDPOINT", default="http://stripe:12111")
+    STRIPE_ENDPOINT_SECRET = os.environ.get(
+        "STRIPE_ENDPOINT_SECRET", default="000000000000"
+    )
 
     SERVER_NAME = "localhost:5000"
 
@@ -78,6 +81,9 @@ class DevelopmentConfig(Config):
     DNS_ADDR = os.environ.get("DNS_ADDR", default="127.0.0.11")
     STRIPE_KEY = os.environ.get("STRIPE_KEY", default="notconfigured")
     STRIPE_ENDPOINT = os.environ.get("STRIPE_ENDPOINT", default="http://stripe:12111")
+    STRIPE_ENDPOINT_SECRET = os.environ.get(
+        "STRIPE_ENDPOINT_SECRET", default="000000000000"
+    )
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
 
@@ -114,6 +120,9 @@ class ProductionConfig(Config):
     DNS_ADDR = os.environ.get("DNS_ADDR", default="172.17.0.1")
     STRIPE_KEY = os.environ.get("STRIPE_KEY", default="notconfigured")
     STRIPE_ENDPOINT = os.environ.get("STRIPE_ENDPOINT", default="api.stripe")
+    STRIPE_ENDPOINT_SECRET = os.environ.get(
+        "STRIPE_ENDPOINT_SECRET", default="000000000000"
+    )
 
     MIN_CALVER = os.environ.get("MIN_CALVER")
 

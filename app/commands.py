@@ -1,46 +1,16 @@
 import stripe
 import click
+import json
 from flask.cli import with_appcontext
+from flask import current_app
 from app.models import Plan
 from app import db, redis_client
+from stripe.error import InvalidRequestError
 
-LIMITS = {
-    "free": {
-        "tunnel_count": 1,
-        "bandwidth": 100,
-        "forwards": 2,
-        "reserved_subdomains": 0,
-        "cost": 0,
-    },
-    "waiting": {
-        "tunnel_count": 0,
-        "bandwidth": 0,
-        "forwards": 0,
-        "reserved_subdomains": 0,
-        "cost": 0,
-    },
-    "beta": {
-        "tunnel_count": 2,
-        "bandwidth": 1000,
-        "forwards": 10,
-        "reserved_subdomains": 1,
-        "cost": 0,
-    },
-    "paid": {
-        "tunnel_count": 5,
-        "bandwidth": 100_000,
-        "forwards": 9999,
-        "reserved_subdomains": 5,
-        "cost": 999,
-    },
-    "admin": {
-        "tunnel_count": 5,
-        "bandwidth": 100_000,
-        "forwards": 9999,
-        "reserved_subdomains": 50,
-        "cost": 0,
-    },
-}
+
+with open("support/plans.json") as plans:
+    global LIMITS
+    LIMITS = json.load(plans)
 
 
 @click.group()
@@ -57,20 +27,34 @@ def create_product_command():
 
 def create_product():
     """ Create Stripe Products for Holepunch """
+
+    try:
+        stripe.Product.retrieve("holepunch")
+    except InvalidRequestError:
+        stripe.Product.create(name="Holepunch.io", type="service", id="holepunch")
+
     for plan in Plan.query.all():
         if plan.cost == 0:
             continue
 
-        stripe.Product.create(name="Holepunch.io", type="service", id=plan.name)
+        if plan.stripe_id:
+            try:
+                stripe.Plan.retrieve(plan.stripe_id)
+                current_app.logger.info(
+                    f"Skipping `{plan.name}` as it already exists on Stripe"
+                )
+            except InvalidRequestError:
+                pass  # expected for plans not created yet
+
         stripe_plan = stripe.Plan.create(
-            product=plan.name,
+            product="holepunch",
             nickname=f"Holepunch Service: {plan.name}",
             interval="month",
             currency="usd",
             amount=plan.cost,
         )
 
-        plan.stripe_id = stripe_plan["product"]
+        plan.stripe_id = stripe_plan["id"]
         db.session.add(plan)
 
     db.session.commit()
