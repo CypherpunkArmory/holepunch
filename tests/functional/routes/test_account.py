@@ -1,12 +1,20 @@
-from tests.factories.user import UnconfirmedUserFactory, UserFactory
-from app.models import User, Subdomain, Tunnel
+from tests.factories.user import (
+    UnconfirmedUserFactory,
+    UserFactory,
+    UnstripedUserFactory,
+    StripedUserFactory,
+)
+from app.models import User, Subdomain, Tunnel, AsyncJob
 from tests.factories import subdomain, tunnel
+from tests.support.client import TestClient
 from unittest import mock
 from app.services import authentication
+from app.models import Plan
+from app import stripe
 from tests.support.assertions import assert_valid_schema
 import re
 import jwt
-import requests
+import pytest
 
 
 class TestAccount(object):
@@ -152,7 +160,8 @@ class TestAccount(object):
     def test_register_with_existing_account_no_email_sent(
         self, send_confirm_email, unauthenticated_client, session
     ):
-        """Attempting to register with an already existing account should not send an email confirm email"""
+        """Attempting to register with an already existing account should not
+        send an email confirm email"""
 
         user = UserFactory(email="test@example.com")
         session.add(user)
@@ -175,7 +184,8 @@ class TestAccount(object):
     def test_email_confirm_token_with_non_existing_account_no_email_sent(
         self, send_confirm_email, unauthenticated_client, session
     ):
-        """Attempting to request a email confirm token with an email that is not registered yet should not send an email"""
+        """Attempting to request a email confirm token with an email that is
+        not registered yet should not send an email"""
 
         res = unauthenticated_client.post(
             "/account/token",
@@ -196,7 +206,8 @@ class TestAccount(object):
     def test_password_reset_token_with_non_existing_account_no_email_sent(
         self, send_password_reset_confirm_email, unauthenticated_client, session
     ):
-        """Attempting to request a password reset token with an email that is not registered yet should not send an email"""
+        """Attempting to request a password reset token with an email that is
+        not registered yet should not send an email"""
 
         res = unauthenticated_client.post(
             "/account/token",
@@ -267,12 +278,11 @@ class TestAccount(object):
     def test_change_email_with_correct_credentials(
         self, email_changed_email, client, current_user
     ):
-        """PATCH to /account url with correct email succeeds and old email gets confirmation"""
+        """PATCH to /account url with correct email succeeds and old email gets
+        confirmation"""
+
         old_email = current_user.email
         new_email = "fresh-email@gmail.com"
-
-        r = requests.get("http://mail:8025/api/v1/events", stream=True)
-        r.encoding = "ascii"
 
         res = client.patch(
             "/account",
@@ -285,12 +295,7 @@ class TestAccount(object):
         assert old_email_user is None
         assert new_email_user is not None
 
-        email_changed_email.assert_called_once()
-
-        for line in r.iter_lines(decode_unicode=True):
-            if line and old_email in line:
-                r.close()
-                break
+        email_changed_email.assert_called_once_with(old_email)
 
     @mock.patch(
         "app.services.user.user_notification.send_email_change_confirm_email.queue"
@@ -299,6 +304,7 @@ class TestAccount(object):
         self, email_changed_email, client, current_user, session
     ):
         """PATCH to /account url with an already existing email fails"""
+
         other_user = UnconfirmedUserFactory(email="other_guy@gmail.com")
         session.add(other_user)
         session.flush()
@@ -372,7 +378,8 @@ class TestAccount(object):
         assert Tunnel.query.filter_by(job_id=tun1.job_id).first() is None
 
     def test_revoke_tokens(self, app, current_user, client, unauthenticated_client):
-        """Delete to /account/token url returns a 204 on success and bearer token no longer works"""
+        """Delete to /account/token url returns a 204 on success and bearer
+        token no longer works"""
         res = unauthenticated_client.post(
             "/login", json={"email": current_user.email, "password": "123123"}
         )
@@ -402,7 +409,7 @@ class TestAccount(object):
     def test_returns_an_403_when_using_old_user_uuid(self, current_user, client):
         """Returns an access denied when old uuid is used in token"""
         token = authentication.encode_token(current_user.email, "password-reset")
-        tmp = client.delete("/account/token")
+        client.delete("/account/token")
         res = client.get(f"/account/confirm/{token}")
 
         assert res.status_code == 403
@@ -411,4 +418,182 @@ class TestAccount(object):
         """Returns an access denied when old uuid is used in token"""
         res = client.get("/account")
         assert_valid_schema(res.get_data(), "user.json")
+
+    @pytest.mark.vcr()
+    def test_user_can_update_payment_method_with_customer_id(
+        self, current_free_user, free_client
+    ):
+        """The user can set a payment method via Stripe Client Side
+        when they also set the customer id"""
+
+        # both of these calls happen out of band client side - so
+        # we're pretending to be javascript here so we can return these
+        # strip ids to the API.
+        customer_id = stripe.Customer.create(
+            email=current_free_user.email,
+            description=f"HP Test User {current_free_user.id}",
+        ).id
+
+        pm_id = stripe.PaymentMethod.attach("pm_card_visa", customer=customer_id).id
+
+        res = free_client.patch(
+            "/account",
+            json={
+                "data": {
+                    "type": "user",
+                    "attributes": {
+                        "stripe_payment_method": pm_id,
+                        "stripe_id": customer_id,
+                    },
+                }
+            },
+        )
+
         assert res.status_code == 200
+
+        user = User.query.filter_by(uuid=current_free_user.uuid).first()
+        assert user.stripe_payment_method == pm_id
+        assert user.stripe_id == customer_id
+
+    def test_user_cannot_set_payment_id_without_cus_id(self, current_user, client):
+        """ The user cannot set a payment method without sending the customer id """
+
+        res = client.patch(
+            "/account",
+            json={
+                "data": {
+                    "type": "user",
+                    "attributes": {"stripe_payment_method": "pm_works"},
+                }
+            },
+        )
+
+        assert res.status_code == 400
+
+    def test_user_can_set_cust_id_without_payment(self, app, session):
+        """ The user can set their cust_id without a payment"""
+
+        app.test_client_class = TestClient
+        unstriped_user = UnstripedUserFactory()
+        session.add(unstriped_user)
+        session.flush()
+        with app.test_client(user=unstriped_user) as client:
+            res = client.patch(
+                "/account",
+                json={
+                    "data": {"type": "user", "attributes": {"stripe_id": "cust_12345"}}
+                },
+            )
+
+            assert res.status_code == 200
+            user = User.query.filter_by(uuid=unstriped_user.uuid).first()
+            assert user.stripe_payment_method is None
+            assert user.stripe_id == "cust_12345"
+
+    def test_unstriped_user_cannot_modify_plan(self, app, session):
+        """ The user can update plan id only if paymenet method and customer id
+        are set. They cannot be set in the same request."""
+
+        app.test_client_class = TestClient
+        user = UnstripedUserFactory()
+        session.add(user)
+        session.flush()
+        plan_id = Plan.paid().id
+        with app.test_client(user=user) as client:
+            res = client.patch(
+                "/account",
+                json={
+                    "data": {
+                        "type": "user",
+                        "relationships": {
+                            "plan": {"data": {"type": "plan", "id": str(plan_id)}}
+                        },
+                    }
+                },
+            )
+
+        assert res.status_code == 422
+
+    @pytest.mark.vcr()
+    def test_striped_user_can_modify_plan(self, app, session):
+        """ A user with a valid stripe_id is able to change their payment method """
+
+        app.test_client_class = TestClient
+        user = StripedUserFactory(tier="free", stripe__payment_method="pm_card_visa")
+        session.add(user)
+        session.flush()
+        plan_id = Plan.paid().id
+
+        with app.test_client(user=user) as client:
+            res = client.patch(
+                "/account",
+                json={
+                    "data": {
+                        "type": "user",
+                        "attributes": {},
+                        "relationships": {
+                            "plan": {"data": {"type": "plan", "id": str(plan_id)}}
+                        },
+                    }
+                },
+            )
+
+            assert res.status_code == 200
+            user = User.query.filter_by(uuid=user.uuid).first()
+            assert user.tier == "paid"
+
+    @mock.patch("app.jobs.payment.user_async_subscribe")
+    @mock.patch("app.jobs.payment.user_async_unsubscribe")
+    def test_web_hooks_available_only_to_stripe(
+        self, async_subscribe, async_unsubscribe, unauthenticated_client
+    ):
+
+        res = unauthenticated_client.post(
+            "/account/hook",
+            json={"data": {"event": {"type": "invoice.payment_suceeded"}}},
+        )
+
+        assert not async_subscribe.called
+        assert not async_unsubscribe.called
+        assert res.status_code == 403
+
+    @mock.patch(
+        "app.jobs.payment.user_async_subscribe.queue", return_value=AsyncJob(id=1)
+    )
+    @mock.patch(
+        "app.jobs.payment.user_async_unsubscribe.queue", return_value=AsyncJob(id=1)
+    )
+    def test_async_subscription_create_changes_a_users_plan(
+        self, async_unsubscribe, async_subscribe, unauthenticated_client, stripe_event
+    ):
+        signature, payload = stripe_event(
+            {"type": "invoice.payment_suceeded", "data": {"object": "event"}}
+        )
+        res = unauthenticated_client.post(
+            "/account/hook", headers={"stripe-signature": signature}, data=payload
+        )
+
+        assert async_subscribe.called_once
+        assert not async_unsubscribe.called
+        assert res.status_code == 202
+
+    @mock.patch(
+        "app.jobs.payment.user_async_subscribe.queue", return_value=AsyncJob(id=1)
+    )
+    @mock.patch(
+        "app.jobs.payment.user_async_unsubscribe.queue", return_value=AsyncJob(id=1)
+    )
+    def test_async_subscription_cancel_changes_a_users_plan(
+        self, async_unsubscribe, async_subscribe, unauthenticated_client, stripe_event
+    ):
+        signature, payload = stripe_event(
+            {"type": "invoice.payment_failed", "data": {"object": "event"}}
+        )
+
+        res = unauthenticated_client.post(
+            "/account/hook", headers={"stripe-signature": signature}, data=payload
+        )
+
+        assert async_unsubscribe.called_once
+        assert not async_subscribe.called
+        assert res.status_code == 202

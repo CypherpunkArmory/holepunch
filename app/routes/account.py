@@ -75,7 +75,9 @@ def confirm(token):
 def revoke_all_tokens():
     current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
     service = UserUpdate(
-        current_user, scopes=authentication.jwt_scopes(), uuid=str(uuid.uuid4())
+        current_user,
+        scopes=authentication.jwt_scopes(),
+        attrs={"uuid": str(uuid.uuid4())},
     )
     service.update()
     return "", 204
@@ -92,9 +94,11 @@ def update_user():
 
         current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
 
-        new_attrs = dig(request.json, "data/attributes", None)
         service = UserUpdate(
-            current_user, scopes=authentication.jwt_scopes(), **new_attrs
+            current_user,
+            scopes=authentication.jwt_scopes(),
+            attrs=dig(request.json, "data/attributes", {}),
+            rels=dig(request.json, "data/relationships", {}),
         )
         updated_user = service.update()
 
@@ -117,9 +121,10 @@ def delete_user():
         json_schema_manager.validate(request.json, "user_delete.json")
         current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
 
-        attributes = dig(request.json, "data/attributes", None)
         service = UserDeletion(
-            current_user, scopes=authentication.jwt_scopes(), **attributes
+            current_user,
+            scopes=authentication.jwt_scopes(),
+            attrs=dig(request.json, "data/attributes", {}),
         )
         entries_deleted = service.delete()
 

@@ -1,5 +1,6 @@
 from unittest import mock
 from tests.factories.user import UserFactory
+from app.services.user.user_update import UserUpdate
 from app.models import Plan
 from app import db
 
@@ -7,14 +8,32 @@ from app import db
 class TestUserUpdate(object):
     """ User Update Service fires all the right hooks. """
 
+    def test_user_can_change_relationship(self, session):
+        free_user = UserFactory(tier="free")
+        plan = Plan.paid()
+        session.add(free_user)
+        session.flush()
+
+        user = UserUpdate(
+            user=free_user,
+            rels={"plan": {"data": {"type": "plan", "id": str(plan.id)}}},
+        ).update()
+
+        assert user.plan == plan
+
     @mock.patch("app.jobs.payment.user_subscribed.queue")
     def test_user_subscribed_is_run_when_user_tier_is_changed_to_paid(
         self, user_subscribed, session
     ):
         free_user = UserFactory(tier="free")
-        free_user.plan = Plan.paid()
-        session.add(free_user)
-        session.commit()
+
+        UserUpdate(
+            user=free_user,
+            rels={"plan": {"data": {"type": "plan", "id": str(Plan.paid().id)}}},
+        ).update()
+
+        db.session.commit()
+
         user_subscribed.assert_called_with(free_user.id, Plan.paid().id)
 
     @mock.patch("app.jobs.payment.user_unsubscribed.queue")
@@ -22,10 +41,17 @@ class TestUserUpdate(object):
         self, user_unsubscribed, session
     ):
         user = UserFactory()
-        user.plan = Plan.free()
-        session.add(user)
-        session.commit()
-        user_unsubscribed.assert_called_with(user.id)
+        db.session.add(user)
+        db.session.flush()
+
+        UserUpdate(
+            user=user,
+            rels={"plan": {"data": {"type": "plan", "id": str(Plan.free().id)}}},
+        ).update()
+
+        db.session.commit()
+
+        user_unsubscribed.assert_called_with(user.id, Plan.paid().id)
 
     @mock.patch("app.jobs.payment.user_subscribed.queue")
     def test_after_commit_hooks_are_specific_to_a_session(
@@ -41,9 +67,12 @@ class TestUserUpdate(object):
         # events for instances we didn't change
 
         free_user = UserFactory(tier="free")
-        free_user.plan = Plan.paid()
 
-        session.add(free_user)
+        UserUpdate(
+            user=free_user,
+            rels={"plan": {"data": {"type": "plan", "id": str(Plan.paid().id)}}},
+        ).update()
+
         session.commit()
         session.expire_all()
 
@@ -53,9 +82,14 @@ class TestUserUpdate(object):
         sess = db.create_scoped_session()
 
         free_user2 = UserFactory(tier="free", email="some_other@email.com")
-        session.expunge(free_user2.plan)
-        sess.add(free_user2)
-        sess.commit()
+
+        UserUpdate(
+            user=free_user2,
+            rels={"plan": {"data": {"type": "plan", "id": str(Plan.free().id)}}},
+        ).update()
+
+        session.commit()
+
         user_subscribed.assert_not_called()
 
         sess.remove()

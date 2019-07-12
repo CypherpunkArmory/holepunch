@@ -9,26 +9,51 @@
         },
         {
           "properties": {
-            "attributes": {
-                "anyOf": [
-                    { "required": ["old_password", "new_password"] },
-                    { "required": ["old_email", "new_email"] },
-                    { "required": [] }
-                ],
+            "relationships": {
               "properties": {
-                "old_email": {
-                  "type": "string"
-                },
-                "new_email": {
-                  "type": "string"
-                },
-                "old_password": {
-                  "type": "string"
-                },
-                "new_password": {
-                  "type": "string"
-                }
+                "plan": { "$ref": "json-api.json#/definitions/relationship" }
               }
+            },
+            "attributes": {
+              "anyOf": [
+                {
+                  "required": ["email"],
+                  "properties": {
+                    "email": {
+                      "type": "string"
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                {
+                  "required": ["new_password"],
+                  "properties": {
+                    "old_password": {
+                      "type": "string"
+                    },
+                    "new_password": {
+                      "type": "string"
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                {
+                  "required": ["stripe_id"],
+                  "properties": {
+                    "stripe_payment_method": {
+                      "type": "string"
+                    },
+                    "stripe_id": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                {
+                  "properties": {},
+                  "additionalProperties": false
+                }
+              ]
             }
           }
         }
