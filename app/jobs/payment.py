@@ -1,6 +1,7 @@
 from app.models import User, Plan
 from app.services.user.user_stripe import UserStripe
 from app import Q
+from stripe.stripe_object import StripeObject
 
 
 @Q.job(func_or_queue="payment", timeout=60000)
@@ -18,14 +19,14 @@ def user_unsubscribed(user_id, old_plan_id):
 
 
 @Q.job(func_or_queue="payment", timeout=60000)
-def user_async_subscribe(event):
+def user_async_subscribe(event: StripeObject):
     UserStripe.from_customer_id(
         event.data.object.customer
     ).link_to_plan_via_subscription(event.data.object.subscription)
 
 
 @Q.job(func_or_queue="payment", timeout=60000)
-def user_async_unsubscribe(event):
+def user_async_unsubscribe(event: StripeObject):
     UserStripe.from_customer_id(
         event.data.object.customer
     ).unlink_from_plan_via_subscription(event.data.object.subscription)

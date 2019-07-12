@@ -23,7 +23,7 @@ def tunnel_admin() -> Tuple[Response, int]:
     Stop any currently running tunnel if you are an admin
     """
     current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
-    if current_user.tier() != "admin":
+    if current_user.tier != "admin":
         return json_api(NotFoundError, ErrorSchema), 404
 
     try:

@@ -1,7 +1,7 @@
 """Add stripe fields to user
 
 Revision ID: 25853ecf738c
-Revises: 3f63f2913228
+Revises: 8813ddff05a2
 Create Date: 2019-06-25 17:36:46.573696
 
 """
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "25853ecf738c"
-down_revision = "3f63f2913228"
+down_revision = "8813ddff05a2"
 branch_labels = None
 depends_on = None
 

@@ -6,9 +6,11 @@ from app.models import Tunnel
 
 
 class UserDeletion:
-    def __init__(self, user, **attrs):
+    def __init__(self, user, scopes=None, attrs=None):
+        scopes = {} if scopes is None else scopes
+        attrs = {} if attrs is None else attrs
         self.user = user
-        self.scopes = attrs.pop("scopes")
+        self.scopes = scopes
         self.password = attrs.pop("password")
         authentication.validate_scope_permissions("delete:user", self.scopes, attrs)
 

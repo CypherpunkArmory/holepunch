@@ -1,6 +1,7 @@
 import pytest
 from dotenv import load_dotenv
 from app import create_app, stripe
+from app.commands import populate_redis
 from app import db as _db
 from sqlalchemy import event
 from tests.support.client import TestClient
@@ -81,6 +82,11 @@ def populate_plans(app, db):
         sess.commit()
         sess.remove()
         sess.expire_all()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def populate_redis_fixture():
+    populate_redis()
 
 
 @pytest.fixture(scope="function", autouse=True)

@@ -13,7 +13,7 @@
   },
   "app/jobs/*.py": {
     "type": "job",
-    "alternate": "tests/functional/jobs/{dirname}/test_{basename}_job.py"
+    "alternate": "tests/functional/jobs/{dirname}/test_{basename}.py"
   },
   "app/__init__.py": {
     "type": "init"

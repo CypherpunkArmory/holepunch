@@ -3,7 +3,6 @@ import consul
 from app import Q, redis_client
 from app.utils.dns import discover_service
 from datetime import timedelta
-import os
 
 from app.models import Tunnel
 

@@ -338,7 +338,8 @@ class TestAccount(object):
     def test_account_delete_account_with_reserved_subdomains(
         self, client, current_user, session
     ):
-        """DELETE to /account url succeeds and associated reserved subdomains no longer exists"""
+        """DELETE to /account url succeeds and associated reserved subdomains
+        no longer exists"""
         sub1 = subdomain.ReservedSubdomainFactory(user=current_user, name="sub-bass")
         session.add(sub1)
         session.flush()

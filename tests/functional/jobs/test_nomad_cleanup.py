@@ -16,14 +16,17 @@ class TestNomadCleanup(object):
         session.add(asub)
         session.flush()
 
-        first_time = TunnelCreationService(
+        TunnelCreationService(
             current_user=current_user,
             subdomain_id=asub.id,
             port_types=["http"],
             ssh_key="",
         ).create()
+
         find_unused_boxes()
         find_unused_boxes()
+
         nomad_client = nomad.Nomad(discover_service("nomad").ip)
         deploys = nomad_client.job.get_deployments("ssh-client-bobjoebob")
+
         assert len(deploys) == 0

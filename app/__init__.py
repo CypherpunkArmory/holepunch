@@ -18,6 +18,8 @@ import rollbar
 import rollbar.contrib.flask
 import stripe
 import logging
+import app.settings as settings
+
 from packaging import version
 
 from app.utils.json import JSONSchemaManager, json_api
@@ -50,8 +52,6 @@ logger.setLevel(logging.INFO)
 
 
 def create_app(env: str = "development"):
-    import app.settings as settings
-
     app = Flask(__name__)
     app.config.from_object(settings.app_config[env])
 

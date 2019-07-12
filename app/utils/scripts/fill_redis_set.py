@@ -1,6 +1,7 @@
 from app import create_app
 from app.commands.redis import populate_redis
 import sys
+import os
 
 
 def pre(app):

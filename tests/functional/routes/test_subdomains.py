@@ -1,8 +1,7 @@
 from app.models import Subdomain
-from tests.factories import subdomain, user
+from tests.factories import subdomain
 from tests.support.assertions import assert_valid_schema
 from dpath.util import values
-import json
 
 
 class TestSubdomain(object):

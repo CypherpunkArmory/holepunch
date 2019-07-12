@@ -4,7 +4,7 @@ from app.utils.json import locate
 from app.utils.errors import UnprocessableEntity
 from functools import wraps
 from app import db
-from sqlalchemy import inspect, event
+from sqlalchemy import inspect
 
 
 @contextmanager
@@ -58,7 +58,7 @@ class Interactor:
 
     @staticmethod
     def after_commit(f):
-        event.listen(db.session, "after_commit", f, once=True)
+        sqlalchemy.event.listen(db.session, "after_commit", f, once=True)
         return f
 
     @classmethod

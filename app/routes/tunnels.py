@@ -5,7 +5,6 @@ Provides CRUD operations for Tunnel Resources
 from flask import Blueprint, request, Response, make_response
 from flask_jwt_extended import get_jwt_identity, jwt_required
 from jsonschema import ValidationError
-from sqlalchemy.orm.exc import NoResultFound
 
 from app import json_schema_manager
 from app.models import Tunnel, User, Subdomain
@@ -13,7 +12,6 @@ from app.serializers import ErrorSchema, TunnelSchema
 from app.services.tunnel import TunnelCreationService, TunnelDeletionService
 from app.utils.errors import (
     BadRequest,
-    NotFoundError,
     AccessDenied,
     SubdomainInUse,
     SubdomainLimitReached,

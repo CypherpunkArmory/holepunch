@@ -9,7 +9,10 @@ from app.utils.db import Interactor
 
 
 class UserUpdate(Interactor):
-    def __init__(self, user: User, scopes={}, rels={}, attrs={}):
+    def __init__(self, user: User, scopes=None, rels=None, attrs=None):
+        scopes = {} if scopes is None else scopes
+        rels = {} if rels is None else rels
+        attrs = {} if attrs is None else attrs
         self.user = user
         self.scopes = scopes
         authentication.validate_scope_permissions("update:user", self.scopes, attrs)

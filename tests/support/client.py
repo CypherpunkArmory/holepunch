@@ -5,8 +5,6 @@ import time
 from werkzeug.datastructures import Headers
 from flask.testing import FlaskClient
 from app.routes.authentication import ensure_user_claims
-import requests
-import json
 from flask import current_app
 
 

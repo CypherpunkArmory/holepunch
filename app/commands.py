@@ -9,7 +9,6 @@ from stripe.error import InvalidRequestError
 
 
 with open("support/plans.json") as plans:
-    global LIMITS
     LIMITS = json.load(plans)
 
 
@@ -68,6 +67,7 @@ def populate_command():
 
 def populate():
     """ Create DB Entries for Holepunch Plans"""
+    global LIMITS
 
     for plan_name, plan in LIMITS.items():
         p = Plan(**{"name": plan_name}, **plan)

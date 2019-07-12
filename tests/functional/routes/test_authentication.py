@@ -28,7 +28,7 @@ class TestAuthentication(object):
             == current_user.uuid
         )
 
-    def login_route_is_time_limited(self, limited_app):
+    def login_route_is_time_limited(self, limited_app, current_user):
         """Repeated posts to login fails"""
 
         client = create_app("development").test_client()

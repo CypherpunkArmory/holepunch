@@ -92,7 +92,7 @@ tasks:
       - sleep 3
       - docker-compose exec db createdb -U postgres holepunch_development
       - docker-compose exec db createdb -U postgres holepunch_test
-      - docker-compose run web flask db upgrade
+      - docker-compose run web python -m flask db upgrade
       - docker-compose run web python -m flask plan populate
       - docker-compose run web python -m flask redis populate
 
@@ -317,3 +317,4 @@ tasks:
           ANSIBLE_VAULT_PATH: "{{.ANSIBLE_VAULT_PATH}}"
           WORKSPACE: "{{.WORKSPACE}}"
           HOOK: "{{.HOOK}} post"
+
