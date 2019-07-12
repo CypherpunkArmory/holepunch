@@ -61,3 +61,13 @@ class ErrorSchema(Schema):
     source = fields.Str()
     code = fields.Str()
     backtrace = fields.List(fields.Str())
+
+
+class AsyncSchema(Schema):
+    class Meta:
+        type_ = "job"
+        strict = True
+        inflect = drinkingCamel
+        self = "<url>"
+
+    id = fields.Str()

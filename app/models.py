@@ -16,6 +16,10 @@ class UserLimit(NamedTuple):
     reserved_subdomains: int
 
 
+class AsyncJob(NamedTuple):
+    id: Union[str, int]
+
+
 class Subdomain(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), index=True, nullable=False, unique=True)

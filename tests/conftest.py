@@ -1,10 +1,32 @@
 import pytest
 from dotenv import load_dotenv
-from app import create_app
+from app import create_app, stripe
 from app import db as _db
 from sqlalchemy import event
 from tests.support.client import TestClient
 from tests.factories import user, plan as plan_factory
+from functools import wraps
+import time
+from stripe.webhook import WebhookSignature
+import json
+
+collect_ignore = ["client.py"]
+
+
+def mock_decorator():
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            return f(*args, **kwargs)
+
+        return decorated_function
+
+    return decorator
+
+
+@pytest.fixture(scope="module")
+def vcr_config():
+    return {"filter_headers": [("authorization", "NOKEYFORYOU")]}
 
 
 @pytest.fixture(scope="session")
@@ -19,6 +41,32 @@ def db(app, request):
     with app.app_context():
         _db.drop_all()
         _db.create_all()
+
+
+@pytest.fixture(scope="function")
+def stripe_event(app):
+    def _stripe_event(payload_dict):
+        timestamp = int(time.time())
+        payload = json.dumps(payload_dict)
+        hmac = WebhookSignature._compute_signature(
+            "%d.%s" % (timestamp, payload), app.config["STRIPE_ENDPOINT_SECRET"]
+        )
+        signature = f"t={timestamp},v1={hmac},v0={hmac}"
+
+        return signature, payload
+
+    return _stripe_event
+
+
+@pytest.fixture(scope="function")
+def attach_payment_method(app, session):
+    def _attach_payment_method(user, stripe_pm_id):
+        pm_id = stripe.PaymentMethod.attach(stripe_pm_id, customer=user.stripe_id).id
+        user.stripe_payment_method = pm_id
+        session.add(user)
+        session.flush()
+
+    return _attach_payment_method
 
 
 @pytest.fixture(scope="session", autouse=True)

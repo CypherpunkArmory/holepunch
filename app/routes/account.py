@@ -4,8 +4,9 @@ from app.services.user.user_update import UserUpdate
 from app.services.user.user_deletion import UserDeletion
 from app.services.user.user_notification import UserNotification
 from app.services.user.user_token import UserToken
-from app.models import User
-from app.serializers import UserSchema
+from app.services.authentication import stripe_webhook
+from app.models import User, AsyncJob
+from app.serializers import UserSchema, AsyncSchema
 from flask import request, Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from app import json_schema_manager
@@ -15,6 +16,7 @@ from app.serializers import ErrorSchema
 from jsonschema import ValidationError
 from werkzeug.exceptions import NotFound
 import uuid
+import app.jobs.payment as payment_jobs
 
 account_blueprint = Blueprint("account", __name__)
 
@@ -150,7 +152,21 @@ def register_user():
     except UserError as e:
         return json_api(e, ErrorSchema), 422
     except ValidationError as e:
-        return json_api(BadRequest(source=e.message), ErrorSchema), 400
+        return json_api(BadRequest(source=e.message), ErrorSchema), 401
+
+
+@account_blueprint.route("/account/hook", methods=["POST"])
+@stripe_webhook
+def account_hook(event):
+    """ This endpoint is called by Stripes webhook integrations for async events """
+
+    job_id = None
+
+    if event.type == "invoice.payment_suceeded":
+        job_id = payment_jobs.user_async_subscribe.queue(event).id
+    elif event.type == "invoice.payment_failed":
+        job_id = payment_jobs.user_async_unsubscribe.queue(event).id
+    return json_api(AsyncJob(id=job_id), AsyncSchema), 202
 
 
 @account_blueprint.route("/account", methods=["GET"])

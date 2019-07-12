@@ -1,8 +1,11 @@
 from itsdangerous import URLSafeTimedSerializer, BadSignature
-from flask import current_app
+from flask import current_app, request
+from app import stripe
 from functools import wraps
 from flask_jwt_extended import get_jwt_claims
-from app.utils.errors import AccessDenied
+from app.utils.errors import AccessDenied, BadRequest
+from app.utils.json import json_api
+from app.serializers import ErrorSchema
 
 
 def encode_token(uuid, salt="default-salt"):
@@ -40,6 +43,27 @@ def jwt_scope_required(**required_scopes):
         return wrapper_jwt_scope_required
 
     return decorator_jwt_scope_required
+
+
+def stripe_webhook(func):
+    @wraps(func)
+    def stripe_webhook_wrapper(*args, **kwargs):
+        payload = request.data.decode("utf-8")
+
+        try:
+            sig_header = request.headers["stripe-signature"]
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, current_app.config["STRIPE_ENDPOINT_SECRET"]
+            )
+        except ValueError:
+            # Invalid JSON
+            return json_api(BadRequest(), ErrorSchema), 400
+        except (KeyError, stripe.error.SignatureVerificationError):
+            return json_api(AccessDenied(), ErrorSchema), 403
+
+        return func(event=event, *args, **kwargs)
+
+    return stripe_webhook_wrapper
 
 
 def validate_scope_permissions(parent_scope, scopes, attrs):

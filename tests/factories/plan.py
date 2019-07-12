@@ -1,4 +1,4 @@
-from factory import Factory, post_generation, Faker, SubFactory, Trait
+from factory import Factory, Trait
 from pytest_factoryboy import register
 
 from app.models import Plan
@@ -15,7 +15,9 @@ class PlanFactory(Factory):
     reserved_subdomains = 5
     cost = 999
     name = "paid"
-    stripe_id = "holepunch_paid"
+    # NOTE If you delete the plan on the test account, you are going to need to
+    # update this plan id
+    stripe_id = "plan_FHjqReterVJV8l"
 
     class Params:
         paid = True
