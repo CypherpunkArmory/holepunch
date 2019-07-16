@@ -81,9 +81,9 @@ tasks:
           printf "$(tput sc) $i $(tput rc)";
         done
 
-  setup_db:
-    prefix: 'setup_db'
-    desc: Setup Database
+  setup_local:
+    prefix: 'setup_local'
+    desc: Setup Database and redis locally
     cmds:
       - docker-compose stop db
       - docker-compose rm -f db
@@ -93,6 +93,8 @@ tasks:
       - docker-compose exec db createdb -U postgres holepunch_development
       - docker-compose exec db createdb -U postgres holepunch_test
       - docker-compose run web flask db upgrade
+      - docker-compose run web python -m flask plan populate
+      - docker-compose run web python -m flask redis populate
 
   setup_net:
     prefix: 'setup_net'
@@ -114,7 +116,7 @@ tasks:
     prefix: 'clean'
     desc: Shutdown All Running Tunnels and Destroy Unreserved Subdomains
     cmds:
-      - nomad job status | grep "ssh-client/dispatch" | cut -d ' ' -f1 | xargs -I '{}' sh -lc 'yes | nomad job stop --purge {}'
+      - nomad job status | grep "ssh-client" | cut -d ' ' -f1 | xargs -I '{}' sh -lc 'yes | nomad job stop --purge {}'
       - echo "delete from tunnel; delete from subdomain where reserved is false" | psql -U postgres -h 0.0.0.0 -d holepunch_development
 
   add_host:
@@ -135,6 +137,14 @@ tasks:
       LISTEN_PORT: 4000
     cmds:
       - "docker run -p {{.LISTEN_PORT}}:80 -e GUNICORN_CMD_ARGS=\"--capture-output --error-logfile - --access-logfile - --access-logformat '%(h)s %(t)s %(r)s %(s)s Host: %({Host}i)s}'\" kennethreitz/httpbin"
+
+  start_test_tcp_server:
+    prefix: 'test_tcp_server'
+    desc: Start a TCP Echo server on {{.LISTEN_PORT}}
+    vars:
+      LISTEN_PORT: 2701
+    cmds:
+      - "docker run --rm -e TCP_PORT={{.LISTEN_PORT}} -p {{.LISTEN_PORT}}:{{.LISTEN_PORT}} cjimti/go-echo"
 
   release-ssh:
     prefix: 'release-ssh'
@@ -201,11 +211,10 @@ tasks:
           ROOT_TOKEN: '{{.ROOT_TOKEN}}'
           ANSIBLE_VAULT_PATH: '{{.ANSIBLE_VAULT_PATH}}'
           WORKSPACE: '{{.WORKSPACE}}'
-    status:
-      - nomad job status | grep "holepunch"
     vars: *x-deploy-vars
     preconditions: *x-deploy-pre
     cmds:
+      - terraform taint nomad_job.holepunch
       - terraform workspace select {{.WORKSPACE}}
       - terraform plan -var "ssh_deploy_version={{.SSH_TAG}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "planfile"
       - terraform apply "planfile"

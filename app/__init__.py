@@ -4,6 +4,7 @@ import traceback
 from flask import Flask, request, got_request_exception
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_redis import FlaskRedis
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import DatabaseError
 from momblish import Momblish
@@ -41,6 +42,7 @@ jwt = JWTManager()
 momblish = load_corpus()
 json_schema_manager = JSONSchemaManager("../support/schemas")
 Q = RQ()
+redis_client = FlaskRedis()
 Q.queues = ["email", "nomad"]
 
 
@@ -55,6 +57,7 @@ def create_app(env: str = "development"):
     jwt.init_app(app)
     json_schema_manager.init_app(app)
     Q.init_app(app)
+    redis_client.init_app(app)
     CORS(app)
     stripe.api_key = app.config["STRIPE_KEY"]
     stripe.api_base = app.config["STRIPE_ENDPOINT"]
@@ -67,7 +70,7 @@ def create_app(env: str = "development"):
     from app.routes.authentication import auth_blueprint
     from app.routes.account import account_blueprint
     from app.routes.root import root_blueprint
-    from app.commands import plan
+    from app.commands import plan, redis
 
     from querystring_parser.parser import parse as qs_parse
 
@@ -83,6 +86,7 @@ def create_app(env: str = "development"):
     app.register_blueprint(account_blueprint)
     app.register_blueprint(root_blueprint)
     app.cli.add_command(plan)
+    app.cli.add_command(redis)
 
     from app.serializers import ErrorSchema
     from app.utils.errors import (

@@ -96,6 +96,7 @@ dnspython = "*"
 flask-limiter = "*"
 pytest-random-order = "*"
 stripe = "*"
+flask-redis = "*"
 
 [requires]
 python_version = "3.7"

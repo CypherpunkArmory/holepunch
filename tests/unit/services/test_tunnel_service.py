@@ -24,6 +24,6 @@ class TestTunnelCreationService(object):
                 TunnelCreationService(
                     current_user=current_free_user,
                     subdomain_id=asub.id,
-                    port_type=["http"],
+                    port_types=["http"],
                     ssh_key="",
                 ).create()

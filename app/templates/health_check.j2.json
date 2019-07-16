@@ -1,0 +1,56 @@
+ {
+    "AddressMode": "auto",
+    "CanaryTags": null,
+    "CheckRestart": null,
+    "Checks": [
+        {
+        "AddressMode": "driver",
+        "Args": null,
+        "CheckRestart": null,
+        "Command": "",
+        "GRPCService": "",
+        "GRPCUseTLS": false,
+        "Header": null,
+        "Id": "",
+        "InitialStatus": "",
+        "Interval": 10000000000,
+        "Method": "",
+        {%- if port == 'tcp' %}
+        "Name": "{{port}}{{iter}}-{{box_name}}-up",
+        {%- else %}
+        "Label": "{{port}}-{{box_name}}-up",
+        {%- endif %}
+        "Path": "",
+        {%- if port == 'tcp' %}
+        "PortLabel": "{{port}}{{iter}}",
+        {%- else %}
+        "PortLabel": "{{port}}",
+        {%- endif %}
+        "Protocol": "",
+        "TLSSkipVerify": false,
+        "Timeout": 2000000000,
+        "Type": "tcp"
+        }
+    ],
+    "Id": "",
+    {%- if port == 'tcp' %}
+    "Name": "box-{{box_name}}-{{port}}{{iter}}",
+    {%- else %}
+    "Name": "box-{{box_name}}-{{port}}",
+    {%- endif %}
+    {%- if port == 'tcp' %}
+    "PortLabel": "{{port}}{{iter}}",
+    {%- else %}
+    "PortLabel": "{{port}}",
+    {%- endif %}
+    "Tags": [
+    {%-if port == 'tcp' %}
+    "urlprefix-{{tcp_lb_ip}}:{{tcp_port}}/ proto=tcp"
+    {%-elif port == 'http'%}
+    "urlprefix-{{box_name}}.{{base_url}}/ proto=http"
+    {%-else %}
+    "urlprefix-{{box_name}}.{{base_url}}/ proto=tcp+sni"
+    {%-endif %}
+        
+    ]
+}

@@ -41,6 +41,7 @@ services:
       - CONSUL_HOST=consul
       - SEA_HOST=${SEA_HOST}
       - FLASK_APP=${FLASK_APP}
+      - REDIS_URL=redis://redis:6379
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - .:/holepunch

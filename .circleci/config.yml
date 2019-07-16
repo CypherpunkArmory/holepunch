@@ -76,7 +76,7 @@ jobs:
       - run:
           name: Setup holepunch
           command: |
-            ./bin/task setup_db
+            ./bin/task setup_local
             ./bin/task setup_tun
 
       - run:

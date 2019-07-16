@@ -49,13 +49,13 @@ def start_tunnel() -> Tuple[Response, int]:
         json_schema_manager.validate(request.json, "tunnel_create.json")
 
         subdomain_id = dig(request.json, "data/relationships/subdomain/data/id")
-        port_type = dig(request.json, "data/attributes/port")
+        port_types = dig(request.json, "data/attributes/port")
         ssh_key = dig(request.json, "data/attributes/sshKey")
 
         current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
         try:
             tunnel_info = TunnelCreationService(
-                current_user, subdomain_id, port_type, ssh_key
+                current_user, subdomain_id, port_types, ssh_key
             ).create()
         except SubdomainLimitReached:
             return json_api(SubdomainLimitReached, ErrorSchema), 403

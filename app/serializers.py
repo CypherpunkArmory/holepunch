@@ -15,7 +15,7 @@ class TunnelSchema(Schema):
     port = fields.List(fields.Str())
     ssh_port = fields.Str()
     ip_address = fields.Str()
-
+    tcp_ports = fields.List(fields.Str())
     subdomain = fields.Relationship(
         "/subdomains/{subdomain_id}",
         related_url_kwargs={"subdomain_id": "<subdomain_id>"},

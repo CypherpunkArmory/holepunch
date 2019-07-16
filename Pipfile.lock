@@ -330,6 +330,14 @@
             "index": "pypi",
             "version": "==2.2.1"
         },
+        "flask-redis": {
+            "hashes": [
+                "sha256:8d79eef4eb1217095edab603acc52f935b983ae4b7655ee7c82c0dfd87315d17",
+                "sha256:e1fccc11e7ea35c2a4d68c0b9aa58226a098e45e834d615c7b6c4928b01ddd6c"
+            ],
+            "index": "pypi",
+            "version": "==0.4.0"
+        },
         "flask-rest-jsonapi": {
             "hashes": [
                 "sha256:77e8ddc777ade12744b8d6f1d005f5bad4058bf3116f65d9e236a4d661894d71",

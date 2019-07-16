@@ -18,9 +18,11 @@ class SubdomainCreationService:
             return True
         return False
 
-    def get_unused_subdomain(self):
+    def get_unused_subdomain(self, tcp_url):
         while True:
             self.subdomain_name = momblish.word(10).lower()
+            if tcp_url:
+                self.subdomain_name = "TCP-" + self.subdomain_name
             try:
                 subdomain = self.reserve(reserve=False)
                 break

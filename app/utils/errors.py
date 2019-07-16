@@ -67,6 +67,13 @@ class TunnelError(JsonApiException):
     status = "500"
 
 
+class RedisError(JsonApiException):
+    """Raised when there is an error connecting to Redis"""
+
+    title = "Redis Error"
+    status = "500"
+
+
 class SubdomainError(JsonApiException):
     """Raised when there is an error creating/deleting a subdomain"""
 

@@ -3,11 +3,13 @@ from dpath.util import values
 from nomad.api.exceptions import BaseNomadException
 from app.models import Tunnel
 from app.services.tunnel import TunnelCreationService, TunnelDeletionService
+from app.services.subdomain import SubdomainCreationService
 from app.utils.errors import TunnelError
 from tests.factories.user import UserFactory
 from tests.factories import subdomain, tunnel
 from tests.support.assertions import assert_valid_schema
 from unittest import mock
+from app import momblish
 
 
 class TestTunnels(object):
@@ -51,8 +53,11 @@ class TestTunnels(object):
         res = client.get(f"/tunnels/{tun.id}")
         assert res.status_code == 404
 
+    @mock.patch.object(momblish, "word", return_value="multipleportssubdomain")
     @pytest.mark.vcr()
-    def test_tunnel_open_without_subdomain(self, client, current_user, session):
+    def test_tunnel_open_without_subdomain(
+        self, mock_get_unused_subdomain, client, current_user, session
+    ):
         """User can open a tunnel without providing a subdomain"""
 
         res = client.post(
@@ -60,7 +65,31 @@ class TestTunnels(object):
             json={
                 "data": {
                     "type": "tunnel",
-                    "attributes": {"port": ["http"], "sshKey": "i-am-lousy-public-key"},
+                    "attributes": {"port": ["http"], "sshKey": "ssh-rsa AAAA\n"},
+                }
+            },
+        )
+
+        assert res.status_code == 201
+        assert_valid_schema(res.get_data(), "tunnel.json")
+        assert Tunnel.query.filter_by(user=current_user).count() == 1
+
+    @mock.patch.object(momblish, "word", return_value="multipleportssubdomain")
+    @pytest.mark.vcr()
+    def test_tunnel_open_with_multiple_ports(
+        self, mock_get_unused_subdomain, client, current_user, session
+    ):
+        """User can open a tunnel with multiple ports"""
+
+        res = client.post(
+            "/tunnels",
+            json={
+                "data": {
+                    "type": "tunnel",
+                    "attributes": {
+                        "port": ["tcp", "http", "tcp"],
+                        "sshKey": "ssh-rsa AAAA\n",
+                    },
                 }
             },
         )
@@ -73,7 +102,9 @@ class TestTunnels(object):
     def test_tunnel_open_with_subdomain(self, client, current_user, session):
         """User can open a tunnel when providing a subdomain they own"""
 
-        sub = subdomain.ReservedSubdomainFactory(user=current_user)
+        sub = subdomain.ReservedSubdomainFactory(
+            user=current_user, name="testtunnelsubdomain"
+        )
         session.add(sub)
         session.flush()
 
@@ -98,10 +129,11 @@ class TestTunnels(object):
         assert_valid_schema(res.get_data(), "tunnel.json")
         assert Tunnel.query.filter_by(user=current_user).count() == 1
 
+    @pytest.mark.vcr()
     def test_tunnel_open_unowned_subdomain(self, client, current_user, session):
         """User can not open a tunnel if they dont own the subdomain"""
 
-        sub = subdomain.ReservedSubdomainFactory()
+        sub = subdomain.ReservedSubdomainFactory(name="unowndedsubdomaintunnel")
         session.add(sub)
         session.flush()
 
@@ -125,7 +157,9 @@ class TestTunnels(object):
     def test_tunnel_close_owned(self, client, session, current_user):
         """User can close a tunnel"""
 
-        sub = subdomain.SubdomainFactory(user=current_user)
+        sub = subdomain.ReservedSubdomainFactory(
+            user=current_user, name="testtunnelsubdomain"
+        )
         session.add(sub)
         session.flush()
         tun = TunnelCreationService(

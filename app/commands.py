@@ -2,7 +2,7 @@ import stripe
 import click
 from flask.cli import with_appcontext
 from app.models import Plan
-from app import db
+from app import db, redis_client
 
 LIMITS = {
     "free": {
@@ -28,7 +28,7 @@ LIMITS = {
     },
     "paid": {
         "tunnel_count": 5,
-        "bandwidth": 100000,
+        "bandwidth": 100_000,
         "forwards": 9999,
         "reserved_subdomains": 5,
         "cost": 999,
@@ -83,3 +83,21 @@ def populate():
         db.session.add(p)
 
     db.session.commit()
+
+
+@click.group()
+def redis():
+    """ Manage Redis lists """
+    pass
+
+
+@redis.command("populate")
+@with_appcontext
+def populate_redis_command():
+    populate_redis()
+
+
+def populate_redis():
+    """ Populate redis set"""
+    ports = list(range(10000, 25000))
+    redis_client.sadd("open_tcp_ports", *ports)

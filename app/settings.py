@@ -16,6 +16,8 @@ class TestConfig(Config):
     """
 
     RQ_REDIS_URL = "redis://redis:6379"
+    REDIS_URL = "redis://redis:6379"
+    TCP_LB_IP = "0.0.0.0"
     # RQ_ASYNC = False
     MAIL_SERVER = "mail"
     MAIL_PORT = 1025
@@ -55,6 +57,8 @@ class DevelopmentConfig(Config):
     TESTING = False
 
     RQ_REDIS_URL = "redis://redis:6379"
+    REDIS_URL = "redis://redis:6379"
+    TCP_LB_IP = "localhost"
 
     MAIL_SERVER = "mail"
     MAIL_PORT = 1025
@@ -90,6 +94,8 @@ class ProductionConfig(Config):
     ROLLBAR_TOKEN = os.environ.get("ROLLBAR_TOKEN")
     ROLLBAR_ENV = os.environ.get("ROLLBAR_ENV")
     RQ_REDIS_URL = os.environ.get("RQ_REDIS_URL")
+    REDIS_URL = os.environ.get("RQ_REDIS_URL")
+    TCP_LB_IP = os.environ.get("TCP_LB_IP")
 
     MAIL_SERVER = "email-smtp.us-west-2.amazonaws.com"
     MAIL_PORT = 465

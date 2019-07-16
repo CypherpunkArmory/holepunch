@@ -1,0 +1,178 @@
+{
+  "Job": {
+    "Affinities": null,
+    "AllAtOnce": false,
+    "Constraints": null,
+    "CreateIndex": 81,
+    "Datacenters": [
+      "city"
+    ],
+    "Dispatched": false,
+    "ID": "ssh-client-{{box_name}}",
+    "JobModifyIndex": 81,
+    "Meta": null,
+    "Migrate": null,
+    "ModifyIndex": 83,
+    "Name": "ssh-client-{{box_name}}",
+    "Namespace": "default",
+    "ParameterizedJob": null,
+    "ParentID": "",
+    "Payload": null,
+    "Periodic": null,
+    "Priority": 50,
+    "Region": "global",
+    "Reschedule": null,
+    "Spreads": null,
+    "Stable": false,
+    "Status": null,
+    "StatusDescription": "",
+    "Stop": false,
+    "SubmitTime": 1559239760878108100,
+    "TaskGroups": [
+      {
+        "Affinities": null,
+        "Constraints": null,
+        "Count": 1,
+        "EphemeralDisk": {
+          "Migrate": false,
+          "SizeMB": 300,
+          "Sticky": false
+        },
+        "Meta": null,
+        "Migrate": {
+          "HealthCheck": "checks",
+          "HealthyDeadline": 300000000000,
+          "MaxParallel": 1,
+          "MinHealthyTime": 10000000000
+        },
+        "Name": "holepunch",
+        "ReschedulePolicy": {
+          "Attempts": 0,
+          "Delay": 30000000000,
+          "DelayFunction": "exponential",
+          "Interval": 0,
+          "MaxDelay": 3600000000000,
+          "Unlimited": true
+        },
+        "RestartPolicy": {
+          "Attempts": 2,
+          "Delay": 15000000000,
+          "Interval": 1800000000000,
+          "Mode": "fail"
+        },
+        "Spreads": null,
+        "Tasks": [
+          {
+            "Affinities": null,
+            "Artifacts": null,
+            "Config": {
+              "image": "cypherpunkarmory/sshd:0.1.4",
+              "labels": [
+                {
+                  "io.holepunch.sshd": "{{box_name}}"
+                }
+              ],
+              "port_map": [
+                {
+                  {%-set count = namespace(port=3002) %}
+                  {%- for port in port_types -%}
+                  {%-if port == 'tcp' %}
+                  "{{port}}{{loop.index}}": {{count.port}},
+                  {%-set count.port = count.port + 1 %}
+                  {%-elif port == 'http'%}
+                  "http": 3000,
+                  {%-else %}
+                  "https": 3001,
+                  {%-endif %}
+                  {%-endfor %}
+                  "ssh": 22
+                }
+              ]
+            },
+            "Constraints": null,
+            "DispatchPayload": null,
+            "Driver": "docker",
+            "Env": {
+              "BANDWIDTH": "{{bandwidth}}",
+              "SSH_KEY": "{{ssh_key}}"
+            },
+            "KillSignal": "",
+            "KillTimeout": 5000000000,
+            "Leader": false,
+            "LogConfig": {
+              "MaxFileSizeMB": 10,
+              "MaxFiles": 10
+            },
+            "Meta": null,
+            "Name": "sshd",
+            "Resources": {
+              "CPU": 100,
+              "Devices": null,
+              "DiskMB": 0,
+              "IOPS": 0,
+              "MemoryMB": 20,
+              "Networks": [
+                {
+                  "CIDR": "",
+                  "Device": "",
+                  "DynamicPorts": [
+                  {%-for port in port_types %}
+                    {
+                      {%-if port == 'tcp' %}
+                      "Label": "{{port}}{{ loop.index }}",
+                      {%-else %}
+                      "Label": "{{port}}",
+                      {%-endif %}
+                      "Value": 0
+                    },
+                  {%-endfor %}
+                    {
+                      "Label": "ssh",
+                      "Value": 0
+                    }
+                  ],
+                  "IP": "",
+                  "MBits": 1,
+                  "ReservedPorts": null
+                }
+              ]
+            },
+            "Services": [
+             {%- for port in port_types %}
+             {% with iter=loop.index %}
+             {% with tcp_port=tcp_ports[loop.index0] %}
+             {% with tcp_lb_ip=tcp_lb_ip %}
+             {% include "health_check.j2.json" %}
+             {% if not loop.last %}
+                  ,
+            {% endif %}
+             {% endwith %}
+             {% endwith %}
+             {% endwith %}
+             {% endfor %}
+
+            ],
+            "ShutdownDelay": 0,
+            "Templates": null,
+            "User": "",
+            "Vault": null
+          }
+        ],
+        "Update": null
+      }
+    ],
+    "Type": "service",
+    "Update": {
+      "AutoRevert": false,
+      "Canary": 0,
+      "HealthCheck": "",
+      "HealthyDeadline": 0,
+      "MaxParallel": 0,
+      "MinHealthyTime": 0,
+      "ProgressDeadline": 0,
+      "Stagger": 0
+    },
+    "VaultToken": "",
+    "Version": 0
+  }
+}

@@ -96,6 +96,7 @@ class User(db.Model):  # type: ignore
 class Tunnel(db.Model):  # type: ignore
     id = db.Column(db.Integer, primary_key=True)
     port = db.Column(types.ARRAY(types.String()))
+    allocated_tcp_ports = db.Column(types.ARRAY(types.Integer()))
     subdomain_id = db.Column(db.Integer, db.ForeignKey("subdomain.id"))
     ssh_port = db.Column(db.Integer)
     job_id = db.Column(db.String(64))
