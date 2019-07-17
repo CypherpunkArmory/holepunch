@@ -234,7 +234,7 @@ tasks:
       <<: *x-deploy-vars
     preconditions:  *x-deploy-pre
     status:
-      - "[ '{{.HOOK}}' == 'none' ]"
+      - "[[ '{{.HOOK}}' == none* ]]"
     cmds:
       - terraform workspace select {{.WORKSPACE}}
       - terraform plan -target nomad_job.holepunch_hook -var "hook={{.HOOK}}" -var "holepunch_deploy_version={{.HP_TAG}}" -out "hookfile"
