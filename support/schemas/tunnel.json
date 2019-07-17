@@ -20,9 +20,16 @@
                 },
                 "sshPort":{
                   "type":"string"
+                },
+                "allocated_tcp_ports": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
                 }
               }
-            }
+            },
+          "additionalProperties": false
           }
         }
       ]

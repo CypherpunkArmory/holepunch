@@ -99,4 +99,4 @@ class TestServiceDiscovery(object):
 
     def test_service_discovery_with_a_record(self):
         ip = discover_service("nomad", "A").ip
-        assert re.match(r"172\.1[78]\.\d{1,3}\.\d{1,3}", ip)
+        assert re.match(r"172\.1[6789]\.\d{1,3}\.\d{1,3}", ip)
