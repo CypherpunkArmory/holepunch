@@ -124,6 +124,7 @@ def create_app(env: str = "development"):
     @app.errorhandler(500)
     def debug_error_handler(e):
         if env == "production":
+            rollbar.report_exc_info()
             return json_api(InternalServerError, ErrorSchema), 500
         else:
             return (
