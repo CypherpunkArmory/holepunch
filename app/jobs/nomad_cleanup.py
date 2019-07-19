@@ -22,7 +22,7 @@ def cleanup_old_nomad_box(job_id):
 
 
 def del_tunnel_nomad(nomad_client, job_id):
-    nomad_client.job.deregister_job(job_id)
+    nomad_client.job.deregister_job(job_id, purge=True)
 
 
 @Q.job(func_or_queue="nomad", timeout=100000)
