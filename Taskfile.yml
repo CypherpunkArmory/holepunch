@@ -46,7 +46,7 @@ x-deploy-vars: &x-deploy-vars
 x-release-vars: &x-release-vars
   VER: '{{ default "next" .VER }}'
   RELEASED_TAG:
-    sh: git describe --abbrev=0 --tags --match "{{.KIND}}*"
+    sh: git describe --abbrev=0 --tags --match "{{.KIND | default ""}}*"
   SOURCE_COMMIT:
     sh: git rev-parse HEAD
   NEXT_TAG:

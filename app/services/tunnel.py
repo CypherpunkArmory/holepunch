@@ -1,4 +1,4 @@
-from typing import Tuple, cast
+from typing import Tuple, List
 import nomad
 from dpath.util import values
 
@@ -11,7 +11,6 @@ from app.utils.errors import (
     TunnelError,
     SubdomainInUse,
     TunnelLimitReached,
-    RedisError,
 )
 from app.utils.json import dig
 
@@ -95,7 +94,7 @@ class TunnelCreationService:
             return True
         return False
 
-    def create_tunnel_nomad(self) -> Tuple[str, dict]:
+    def create_tunnel_nomad(self) -> Tuple[str, List[int]]:
         """Create a tunnel by scheduling an SSH container into the Nomad cluster"""
         tcp_ports = []
         for port in self.port_types:
@@ -153,7 +152,7 @@ class TunnelCreationService:
         try:
             new_port = redis_client.spop("open_tcp_ports")
             return int(new_port)
-        except:
+        except TypeError:  # type error is thrown when attempting to case None to int
             raise TunnelError(detail="No tcp ports available")
 
 
@@ -163,7 +162,7 @@ class TunnelDeletionService:
         self.tunnel = tunnel
         if job_id:
             self.job_id = job_id
-        if self.tunnel:
+        if tunnel:
             self.subdomain = tunnel.subdomain
             self.job_id = tunnel.job_id
 
