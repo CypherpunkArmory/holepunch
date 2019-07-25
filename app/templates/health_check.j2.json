@@ -34,9 +34,9 @@
     ],
     "Id": "",
     {%- if port == 'tcp' %}
-    "Name": "box-{{box_name}}-{{port}}{{iter}}",
+    "Name": "ssh-{{box_name}}-{{port}}{{iter}}",
     {%- else %}
-    "Name": "box-{{box_name}}-{{port}}",
+    "Name": "ssh-{{box_name}}-{{port}}",
     {%- endif %}
     {%- if port == 'tcp' %}
     "PortLabel": "{{port}}{{iter}}",

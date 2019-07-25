@@ -61,9 +61,10 @@ def create_app(env: str = "development"):
     CORS(app)
     stripe.api_key = app.config["STRIPE_KEY"]
     stripe.api_base = app.config["STRIPE_ENDPOINT"]
-    from app.jobs.nomad_cleanup import check_all_boxes
+    from app.jobs.nomad_cleanup import check_all_boxes, find_unused_boxes
 
     # queue job every day at noon (UTC!)
+    find_unused_boxes.cron("* * * * *", "Finding unused tunnels")
     check_all_boxes.cron("0 0 12 * *", "Check running tunnels")
     from app.routes.tunnels import tunnel_blueprint
     from app.routes.subdomains import subdomain_blueprint

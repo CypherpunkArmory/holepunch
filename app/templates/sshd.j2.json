@@ -106,7 +106,7 @@
             "Meta": null,
             "Name": "sshd",
             "Resources": {
-              "CPU": 100,
+              "CPU": 20,
               "Devices": null,
               "DiskMB": 0,
               "IOPS": 0,

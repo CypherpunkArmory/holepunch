@@ -101,3 +101,4 @@ def populate_redis():
     """ Populate redis set"""
     ports = list(range(10000, 25000))
     redis_client.sadd("open_tcp_ports", *ports)
+    redis_client.sadd("unhealthy_tunnels", 0)

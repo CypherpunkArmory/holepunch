@@ -1,0 +1,579 @@
+interactions:
+- request:
+    body: "{\n  \"Job\": {\n    \"Affinities\": null,\n    \"AllAtOnce\": false,\n
+      \   \"Constraints\": null,\n    \"CreateIndex\": 81,\n    \"Datacenters\": [\n
+      \     \"city\"\n    ],\n    \"Dispatched\": false,\n    \"ID\": \"ssh-client-bobjoebob\",\n
+      \   \"JobModifyIndex\": 81,\n    \"Meta\": null,\n    \"Migrate\": null,\n    \"ModifyIndex\":
+      83,\n    \"Name\": \"ssh-client-bobjoebob\",\n    \"Namespace\": \"default\",\n
+      \   \"ParameterizedJob\": null,\n    \"ParentID\": \"\",\n    \"Payload\": null,\n
+      \   \"Periodic\": null,\n    \"Priority\": 50,\n    \"Region\": \"global\",\n
+      \   \"Reschedule\": null,\n    \"Spreads\": null,\n    \"Stable\": false,\n
+      \   \"Status\": null,\n    \"StatusDescription\": \"\",\n    \"Stop\": false,\n
+      \   \"SubmitTime\": 1559239760878108100,\n    \"TaskGroups\": [\n      {\n        \"Affinities\":
+      null,\n        \"Constraints\": null,\n        \"Count\": 1,\n        \"EphemeralDisk\":
+      {\n          \"Migrate\": false,\n          \"SizeMB\": 300,\n          \"Sticky\":
+      false\n        },\n        \"Meta\": null,\n        \"Migrate\": {\n          \"HealthCheck\":
+      \"checks\",\n          \"HealthyDeadline\": 300000000000,\n          \"MaxParallel\":
+      1,\n          \"MinHealthyTime\": 10000000000\n        },\n        \"Name\":
+      \"holepunch\",\n        \"ReschedulePolicy\": {\n          \"Attempts\": 0,\n
+      \         \"Delay\": 30000000000,\n          \"DelayFunction\": \"exponential\",\n
+      \         \"Interval\": 0,\n          \"MaxDelay\": 3600000000000,\n          \"Unlimited\":
+      true\n        },\n        \"RestartPolicy\": {\n          \"Attempts\": 2,\n
+      \         \"Delay\": 15000000000,\n          \"Interval\": 1800000000000,\n
+      \         \"Mode\": \"fail\"\n        },\n        \"Spreads\": null,\n        \"Tasks\":
+      [\n          {\n            \"Affinities\": null,\n            \"Artifacts\":
+      null,\n            \"Config\": {\n              \"image\": \"cypherpunkarmory/sshd:0.1.4\",\n
+      \             \"labels\": [\n                {\n                  \"io.holepunch.sshd\":
+      \"bobjoebob\"\n                }\n              ],\n              \"port_map\":
+      [\n                {\n                  \"http\": 3000,\n                  \"ssh\":
+      22\n                }\n              ]\n            },\n            \"Constraints\":
+      null,\n            \"DispatchPayload\": null,\n            \"Driver\": \"docker\",\n
+      \           \"Env\": {\n              \"BANDWIDTH\": \"100000\",\n              \"SSH_KEY\":
+      \"\"\n            },\n            \"KillSignal\": \"\",\n            \"KillTimeout\":
+      5000000000,\n            \"Leader\": false,\n            \"LogConfig\": {\n
+      \             \"MaxFileSizeMB\": 10,\n              \"MaxFiles\": 10\n            },\n
+      \           \"Meta\": null,\n            \"Name\": \"sshd\",\n            \"Resources\":
+      {\n              \"CPU\": 20,\n              \"Devices\": null,\n              \"DiskMB\":
+      0,\n              \"IOPS\": 0,\n              \"MemoryMB\": 20,\n              \"Networks\":
+      [\n                {\n                  \"CIDR\": \"\",\n                  \"Device\":
+      \"\",\n                  \"DynamicPorts\": [\n                    {\n                      \"Label\":
+      \"http\",\n                      \"Value\": 0\n                    },\n                    {\n
+      \                     \"Label\": \"ssh\",\n                      \"Value\":
+      0\n                    }\n                  ],\n                  \"IP\": \"\",\n
+      \                 \"MBits\": 1,\n                  \"ReservedPorts\": null\n
+      \               }\n              ]\n            },\n            \"Services\":
+      [\n             \n             \n             \n              {\n    \"AddressMode\":
+      \"auto\",\n    \"CanaryTags\": null,\n    \"CheckRestart\": null,\n    \"Checks\":
+      [\n        {\n        \"AddressMode\": \"driver\",\n        \"Args\": null,\n
+      \       \"CheckRestart\": null,\n        \"Command\": \"\",\n        \"GRPCService\":
+      \"\",\n        \"GRPCUseTLS\": false,\n        \"Header\": null,\n        \"Id\":
+      \"\",\n        \"InitialStatus\": \"\",\n        \"Interval\": 10000000000,\n
+      \       \"Method\": \"\",\n        \"Label\": \"http-bobjoebob-up\",\n        \"Path\":
+      \"\",\n        \"PortLabel\": \"http\",\n        \"Protocol\": \"\",\n        \"TLSSkipVerify\":
+      false,\n        \"Timeout\": 2000000000,\n        \"Type\": \"tcp\"\n        }\n
+      \   ],\n    \"Id\": \"\",\n    \"Name\": \"ssh-bobjoebob-http\",\n    \"PortLabel\":
+      \"http\",\n    \"Tags\": [\n    \"urlprefix-bobjoebob.holepunch.box/ proto=http\"\n
+      \       \n    ]\n}\n             \n             \n             \n             \n
+      \            \n\n            ],\n            \"ShutdownDelay\": 0,\n            \"Templates\":
+      null,\n            \"User\": \"\",\n            \"Vault\": null\n          }\n
+      \       ],\n        \"Update\": null\n      }\n    ],\n    \"Type\": \"service\",\n
+      \   \"Update\": {\n      \"AutoRevert\": false,\n      \"Canary\": 0,\n      \"HealthCheck\":
+      \"\",\n      \"HealthyDeadline\": 0,\n      \"MaxParallel\": 0,\n      \"MinHealthyTime\":
+      0,\n      \"ProgressDeadline\": 0,\n      \"Stagger\": 0\n    },\n    \"VaultToken\":
+      \"\",\n    \"Version\": 0\n  }\n}"
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '4555'
+      Content-Type:
+      - application/json
+      User-Agent:
+      - python-requests/2.22.0
+    method: POST
+    uri: http://nomad:4646/v1/jobs
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/0zLuwrCMBQG4Hf55wTSC23MWh2qdXY+TU6kUE6gCV4Q310QB9cPvhcON1qHjanw
+        KIEfcG2lvjju4dDtTNuZmbSNgXUffKVN9L22deutj01DlYXCXz2m+ZzCEp8/q63CSdJdJqbAG1yk
+        NbPCRLkMSQr5AmcULrTJItcMB7w/AQAA////FK+WlwAAAA==
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '148'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:50 GMT
+      Vary:
+      - Accept-Encoding
+      X-Nomad-Index:
+      - '41'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://nomad:4646/v1/job/ssh-client-bobjoebob
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/3RWUXPaOhP9K519VqmhadrxzPdAoW1oQ8rEJN/caTMdYS+2LrLkkdcUN8N/v7Oy
+        sYHQvCSWtKuze87R5hnG67UyihSWEJpKawFjrcf03cQI4VrqEgVMrCnJSWWoOzRxKAlnJsEdhKMP
+        AqaSZIyG0JUQ/oBYUQ1PAqaqLCTFGSZdttkUQijL7HWsFRp6vbKrfy2u7AoEfLWruU3Uuj7KPEeS
+        h2tPNt8GAu5kjn9Px7tlIbkUSHAtK00gYCGdzJHQqT+YfLWrQ/KFdGjIw/Onam1l0m2iUzZRcfft
+        lHVcZPguEHCPqbIGQki1XUkNAqLCoUy6fkUkV7rvaESSqhJCcJUxyqRwWJpiGTtVUJPNL9uiD6tW
+        uaKl4pqH766vgvcfRu9Hw6vrq+D6bRAIWMpy88XZqmASLpF7iUpbGYJwKOBTkWGOTuqpKjcQPsNc
+        pU7SEWz1B+cfufMBI1Pxpm739mc8HQKf4QalpmySYbyBEGL+XYJol+spykQrgz5n9yNgLndMk9ao
+        PbS5Mm1EW31/eN+pILMai8rEGTAjJauu0riwWsU1QxkTYV5w5YGAKWpZn1zbrn2uTNz2H3eFNWhI
+        eUpnrO6t1D58LneHDNcnyB+MVrkiFjy5ihtzjyVJR5dwjDocw3dHOfqbhh9O22ITLnQtlYb9C5Ex
+        +38jfuxIrWV8TLtZq5ThqFymnDWuiwxdUZmNdLl19ZuyzJIwGAwHVyBAyxXqJruyg67VAz4EIfS2
+        2z8JKKyjX7ks/PGMqGgaPQgEWxXC0WgQ7J/2F/V4eDLODDh1aouOjWzjDToQ8MlsGf7H8d30/7Pp
+        8gZCaGTBtolufn379A97aC/gm9I6UqnhjrKp+Jt1ZCti//b9vUWZ8CWt3m9t2rdpLneflcaDB4aN
+        CHip5K8zB/QPU9Ko0VYu5pPPMFk8QDjyctuqGI8L33BmFsD3RdTIDJkJXuWAO6Tf1rUcT2bT+6ac
+        Jk/7d21kruKFddQcu2Xe2BzMgoBHqSuEMNiLfospOdp5EjBbNNnmHxWnGfoK0G0xaRMzYk9ghK4t
+        gmWXJA7LslWprMiCgIk00tVLmfbSax6BlxFJwzGr9ex066FevHkuTdKA/HK/mLQw+oWHEpe3Ucfk
+        TUtsEz5jb0jdvcIn5h6eGA4ps+09B0qbq8JXP/3Y6YT/mjv8E175J84PEMraUWIdndGwcJZsbFs9
+        Lm+jaKOKR3RqXXeYO4WOjgAt64JBUFx4ox3Nv1Mgl69tWPgBldOFw7Xa9VFHll7Z3ZtXBSP8n497
+        4puirKLE/jbte8VQMC+0pF7AD6U3qNcSj9pWJQIeisRPg8N3W0TbSegPPMO4InuPW2SuD/9+eAH5
+        K0+HyaUxcj47gpezI/DtT1l3J3ERyTTlCtjLvoKl3WA7hx/RlX4oBPv/AgAA//+yPJemNQkAAA==
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '1081'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:50 GMT
+      Vary:
+      - Accept-Encoding
+      X-Nomad-Index:
+      - '30'
+      X-Nomad-Knownleader:
+      - 'true'
+      X-Nomad-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://nomad:4646/v1/job/ssh-client-bobjoebob/allocations
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/+xW34vbOBD+V8I820W2/PutbXZL77rHsQn7cMs+yNIk0a1iGUlOG5b874cUx3Fb
+        lit9OQ4KBjMzn+bH940SP77AeyWxc0u03MjeSd1BA2tmn+2CGVyYoetkt4VoxK0cc4OFBmYBg8zh
+        x07gF2gouTjWco/QJHmRkbJKyzTJ0zzLc0IiWGKv9HE/S9cNSnm/lQbF173A5J/XvnrXhnVWnsEv
+        cKsNx3u0fIdiUHjJfCe3hrnJ/BZwiuDmwNTHJTRQiColoqzjothUcUo3bUzSvIhF1uY1LzcFlhwi
+        uNVK6c9DP52DCMJbUJbwMhVxgkkbkyJpY14THmdtnWGW1ZsqExDBb7oNcGt3MQ/Uxq1u/9bY6vYc
+        Xh979AA0B8nx7HtAY8OkJII7LeTmeOGdXhzf8E7zKitoVnve/2B7fKXkm51W2A8d3z2SJzhDbc+4
+        xwvcsEE579UCQ9d1jkUuBI9JUeVxmXIa87SqY1HzoiZZUmZlOeLHolWdJUVFUmToI38axH3vULxV
+        SnPm5ZvWYIq9O16jZ4avwq0N489oLmf8xn4weuihgWkUOPv93qD122HtTvj3zQE7Z6F5fIElOiaV
+        j54iWEr7/EnupQsEL6XtFTveobVsi+O1WBjkKA8oFu1xcWbR76L+3CnNxI0x2oxLa+QBzXeOazaI
+        4OaLdO+1wFDulkmFYiVb5e9ViHuX9VWh2TBlMYIP2KGRfKUHw8ckv0ulZmW8eY/MXijztt8JPZyn
+        +qqBe7SOGTfHr9AN/SzfSm47psLRlccuUbFjMAO3YxRgbs/zffc7UOSU1onfx3HD70dGIYIHpqQI
+        es86ePDbN9mnaC4a7Kdx3g1SCdltF0GmpTTInTZH+HddXzv5P9X19XH+C7nrpKK0mMkdugplf0bw
+        H7ylYc5fl/QnVaO0omlV05lqqzOhPyjZ04WpiZNb2Um7Q/HWQQOEkCQOz5qQJjx/QQSfmHXjsK+D
+        RoC9DjsmTUlSx6SM03ydVE2SNAl9QytKSZ77c+FfYPbhcjqdnv4JAAD//9KbjKf/CAAA
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '792'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Nomad-Index:
+      - '33'
+      X-Nomad-Knownleader:
+      - 'true'
+      X-Nomad-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://nomad:4646/v1/allocation/d3a1c72d-1e1b-061b-c90c-4b94e449f84d
+  response:
+    body:
+      string: !!binary |
+        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
+        b1vQ+XtrVVX/CgAA//9iOor/8BYAAA==
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '1960'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Nomad-Index:
+      - '33'
+      X-Nomad-Knownleader:
+      - 'true'
+      X-Nomad-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://nomad:4646/v1/nodes
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/7xUTW/UMBD9K9GIYxLZ+Y5vVRfUHqiQWjiUopXXnm3NOs7i2EtX1f535CSUqqUg
+        gbSnxDNPem/efHx+gBMpLQ4DMDB9xyXEcGqROzw3Eu+B1TEsuOMCjUMLDIRye4hhYbkywNZcDxhe
+        aod2APYAeI8ifE+cs2rlHY5ROQLSKQnOeoRDDAt0KBxKYCESwxly7e4WOAirtk71BtgcC5Q//2bw
+        x63kDq9Uh8AgI7RNSJ1k5RVtGGlYXqQ0LwhtmuvA9A07/1yV8Vo/1TDX8jsRT9ln2N/pC0LIxC57
+        sQnmveLKlE53vfYdDikavtJB0ORT/Ay2skre4lJtgQGts5TWKUnpC5j1xqku8ID1RrzI98PS7bdB
+        vFbG3z/Pv8Ye2jx5QpuUtGl2hD6WVVZXo5Ff+Y4fu415nuX51Ee7cf/B/o4rjTJyfRTWwDuM7MZF
+        s6FsDLLoJpDcAJsxYRKitdIYmd5F694bGSkTvflwcnX2r9UUdCym68VmOTX31ckMmCPua14WTT45
+        zb8v/3hJfgGOp64idXYNh0MM5wtg0JZYlVKKhFRNmdSZyBORNW0iW1G1pKB1UdcQw/teqvV+vqaU
+        xHDBR5KmLWjVkAw5BthFL/FU8/EQQwyX4g6l18rcvtXqVq2UDneXAY4vHRbz0nHnx/1GLvePgRcj
+        /+lxZUnapjSRuIPDlx8BAAD//zsHjJT6BQAA
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '540'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Nomad-Index:
+      - '10'
+      X-Nomad-Knownleader:
+      - 'true'
+      X-Nomad-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://consul:8500/v1/catalog/services
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6rmUlBQUFBKzs8rLs1RslKIjtWBiKQlJmXmIwsUF2foJuUnZeWnJuUn6WaUlBSA
+        ZMFyYPnSopyCotS0zAqEKr2M/JzUgtK85Ay9pPwKfYWCovySfFuwVrC+WK5aLkAAAAD//zmCMoqB
+        AAAA
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '117'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Consul-Effective-Consistency:
+      - leader
+      X-Consul-Index:
+      - '22'
+      X-Consul-Knownleader:
+      - 'true'
+      X-Consul-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://consul:8500/v1/health/service/ssh-bobjoebob-http
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6yVT2+jOhTF9/kUFutHHv8ehEhvUTUjTRfTVmqlLtpoZOxrcENsZJs0ndF89xEm
+        nU7AJaN2sogEPpyL7/n5cj9DCKHv9r/7eZeSgrf87Y69e7HylshjeR6QgsT+Ik0TP2IL7NOYZn6I
+        CWMkytOYpt4/x08e/Lw4ToqUkSwrsnCoOaNUgdadLIyyeTAP5iPNChtMQBhQnYySkeAWlyXQgxXo
+        0R6sqMZiqorVPA01R5Ifg7JfwGB3LSKFbmtfgHmSauNrKLcgTGc97XiuABu4EBT23hLlw3qScvb8
+        shoGM4eNdwNqx8mbOX4Vcoupb7De+JI/lfx5Q2MpIyLVf02xLZpab+p091h8SzbDNr9ae1pXfiGL
+        RwmFLPzKmMaRSRfE/bg5raobBYzvXx3mlayhaQWp5oXc/4saJY3839oePb9+Bz1vpwR7A0rg2tey
+        Vf2+bHemM7qWqksyysIsGyzdAS8r8wZ/11hrLsouOQd5d1iJw+pk9U8CFzXc4vJqB0pxe8AYrjUM
+        31LJ/fMKtOECGy4t1sPOWE33siMMpRBAjHPpiNAomkQ0ipyInldANmM4HD37gwny6tgDrkGxz4Br
+        U7mEl3hrDW9AMdTL0I3BptUu9WFlibzmEJ7LUho7cobttYtXrWlae/DPShAG4ZrvAGFBkQJMqi5L
+        Z+H+pPU7mhC8bGdC8nIO1w7JChgX/IDHMGp0ciChceL5FLx/J+AMug8OydM4DEnKgiDO8jxehDRI
+        kihMaLhIIAoxm4pf971ZogfHJHvwEOnKTRNBFDec4PoDSJxM/gPDGjkoOTm0kYObkQB9cIaj8RxH
+        74Exik/SGMXHOP66Ws/66/XsZwAAAP//xSK1wgUJAAA=
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Consul-Effective-Consistency:
+      - leader
+      X-Consul-Index:
+      - '23'
+      X-Consul-Knownleader:
+      - 'true'
+      X-Consul-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://consul:8500/v1/catalog/services
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6rmUlBQUFBKzs8rLs1RslKIjtWBiKQlJmXmIwsUF2foJuUnZeWnJuUn6WaUlBSA
+        ZMFyYPnSopyCotS0zAqEKr2M/JzUgtK85Ay9pPwKfYWCovySfFuwVrC+WK5aLkAAAAD//zmCMoqB
+        AAAA
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '117'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Consul-Effective-Consistency:
+      - leader
+      X-Consul-Index:
+      - '22'
+      X-Consul-Knownleader:
+      - 'true'
+      X-Consul-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://consul:8500/v1/health/service/ssh-bobjoebob-http
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/6yVT2+jOhTF9/kUFutHHv8ehEhvUTUjTRfTVmqlLtpoZOxrcENsZJs0ndF89xEm
+        nU7AJaN2sogEPpyL7/n5cj9DCKHv9r/7eZeSgrf87Y69e7HylshjeR6QgsT+Ik0TP2IL7NOYZn6I
+        CWMkytOYpt4/x08e/Lw4ToqUkSwrsnCoOaNUgdadLIyyeTAP5iPNChtMQBhQnYySkeAWlyXQgxXo
+        0R6sqMZiqorVPA01R5Ifg7JfwGB3LSKFbmtfgHmSauNrKLcgTGc97XiuABu4EBT23hLlw3qScvb8
+        shoGM4eNdwNqx8mbOX4Vcoupb7De+JI/lfx5Q2MpIyLVf02xLZpab+p091h8SzbDNr9ae1pXfiGL
+        RwmFLPzKmMaRSRfE/bg5raobBYzvXx3mlayhaQWp5oXc/4saJY3839oePb9+Bz1vpwR7A0rg2tey
+        Vf2+bHemM7qWqksyysIsGyzdAS8r8wZ/11hrLsouOQd5d1iJw+pk9U8CFzXc4vJqB0pxe8AYrjUM
+        31LJ/fMKtOECGy4t1sPOWE33siMMpRBAjHPpiNAomkQ0ipyInldANmM4HD37gwny6tgDrkGxz4Br
+        U7mEl3hrDW9AMdTL0I3BptUu9WFlibzmEJ7LUho7cobttYtXrWlae/DPShAG4ZrvAGFBkQJMqi5L
+        Z+H+pPU7mhC8bGdC8nIO1w7JChgX/IDHMGp0ciChceL5FLx/J+AMug8OydM4DEnKgiDO8jxehDRI
+        kihMaLhIIAoxm4pf971ZogfHJHvwEOnKTRNBFDec4PoDSJxM/gPDGjkoOTm0kYObkQB9cIaj8RxH
+        74Exik/SGMXHOP66Ws/66/XsZwAAAP//xSK1wgUJAAA=
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '659'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Consul-Effective-Consistency:
+      - leader
+      X-Consul-Index:
+      - '23'
+      X-Consul-Knownleader:
+      - 'true'
+      X-Consul-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      User-Agent:
+      - python-requests/2.22.0
+    method: DELETE
+    uri: http://nomad:4646/v1/job/ssh-client-bobjoebob?purge=True
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/0zL3wrCIBwF4Hc51wpbyhJvVxer9RBH/QnBUNikP0TvHgRBtx98LxxvXMZV2GQq
+        SR7w1qovTgd4dMkNJjhqS0OdU7SaO+O0hMEZ9m6I+x4Kf/VUw6Wma37+zCicS72XWZhkhc9cNlGY
+        ubWxlsbY4Lv3JwAA//9HSYR4iQAAAA==
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '136'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Nomad-Index:
+      - '44'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: http://nomad:4646/v1/job/ssh-client-bobjoebob/deployments
+  response:
+    body:
+      string: !!binary |
+        H4sIAAAAAAAA/4qOBQQAAP//KbtMDQIAAAA=
+    headers:
+      Content-Encoding:
+      - gzip
+      Content-Length:
+      - '26'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 25 Jul 2019 18:11:51 GMT
+      Vary:
+      - Accept-Encoding
+      X-Nomad-Index:
+      - '0'
+      X-Nomad-Knownleader:
+      - 'true'
+      X-Nomad-Lastcontact:
+      - '0'
+    status:
+      code: 200
+      message: OK
+version: 1
