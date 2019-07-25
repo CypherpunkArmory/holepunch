@@ -23,7 +23,7 @@ to change the `SEA_HOST` environment variable to your local IP.
 1. You will need a dockerhub account to run the app.
 2. Create a virtualenv (using pyenv) called "holepunch" based on Python 3.7.0
 3. Install go-task via homebrew
-4. Run `task setup_db setup_net`
+4. Run `task setup_local setup_net`
 5. Run the tests  `docker-compose run web pytest`
 
 # Common Commands
