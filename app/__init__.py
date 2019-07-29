@@ -17,6 +17,7 @@ from werkzeug.contrib.fixers import ProxyFix
 import rollbar
 import rollbar.contrib.flask
 import stripe
+import logging
 from packaging import version
 
 from app.utils.json import JSONSchemaManager, json_api
@@ -44,6 +45,8 @@ json_schema_manager = JSONSchemaManager("../support/schemas")
 Q = RQ()
 redis_client = FlaskRedis()
 Q.queues = ["email", "nomad"]
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 
 def create_app(env: str = "development"):
@@ -70,6 +73,7 @@ def create_app(env: str = "development"):
     from app.routes.subdomains import subdomain_blueprint
     from app.routes.authentication import auth_blueprint
     from app.routes.account import account_blueprint
+    from app.routes.admin import admin_blueprint
     from app.routes.root import root_blueprint
     from app.commands import plan, redis
 
@@ -85,6 +89,7 @@ def create_app(env: str = "development"):
     app.register_blueprint(tunnel_blueprint)
     app.register_blueprint(subdomain_blueprint)
     app.register_blueprint(account_blueprint)
+    app.register_blueprint(admin_blueprint)
     app.register_blueprint(root_blueprint)
     app.cli.add_command(plan)
     app.cli.add_command(redis)

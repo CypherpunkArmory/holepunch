@@ -1,5 +1,4 @@
-from factory import Factory, post_generation, Faker, SubFactory, lazy_attribute, Trait
-from faker import Faker as RealFaker
+from factory import Factory, post_generation, Faker, lazy_attribute
 from pytest_factoryboy import register
 import uuid
 

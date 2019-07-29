@@ -33,6 +33,13 @@ LIMITS = {
         "reserved_subdomains": 5,
         "cost": 999,
     },
+    "admin": {
+        "tunnel_count": 5,
+        "bandwidth": 100_000,
+        "forwards": 9999,
+        "reserved_subdomains": 50,
+        "cost": 0,
+    },
 }
 
 

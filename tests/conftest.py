@@ -24,7 +24,7 @@ def db(app, request):
 @pytest.fixture(scope="session", autouse=True)
 def populate_plans(app, db):
     with app.app_context():
-        plans = ["paid", "free", "waiting", "beta"]
+        plans = ["paid", "free", "waiting", "beta", "admin"]
         sess = _db.create_scoped_session()
         for plan in plans:
             p = plan_factory.PlanFactory(**{plan: True})
@@ -74,6 +74,12 @@ def client(app, current_user):
 
 
 @pytest.fixture
+def admin_client(app, current_admin_user):
+    app.test_client_class = TestClient
+    return app.test_client(user=current_admin_user)
+
+
+@pytest.fixture
 def unauthenticated_client(app):
     return app.test_client()
 
@@ -101,6 +107,14 @@ def current_user(session):
 @pytest.fixture
 def current_free_user(session):
     u = user.UserFactory(tier="free")
+    session.add(u)
+    session.flush()
+    return u
+
+
+@pytest.fixture
+def current_admin_user(session):
+    u = user.UserFactory(tier="admin")
     session.add(u)
     session.flush()
     return u

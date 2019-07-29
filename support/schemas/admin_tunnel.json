@@ -1,0 +1,36 @@
+ {
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "admin_tunnel.json",
+  "definitions": {
+    "admin_tunnel": {
+      "allOf": [
+        {
+          "$ref": "json-api.json#/definitions/post_data"
+        },
+        {
+        "properties": {
+            "attributes": {
+              "required": [
+                "subdomainName",
+                "reason"
+              ],
+              "properties": {
+                "subdomainName": {
+                  "type": "string"
+                },
+                "reason": {
+                  "type": "string"
+                }
+              }
+            }
+        }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "required": ["data"],
+  "properties": {
+    "data": { "$ref": "#/definitions/admin_tunnel" }
+  }
+}

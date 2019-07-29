@@ -1,9 +1,7 @@
 import pytest
 from dpath.util import values
-from nomad.api.exceptions import BaseNomadException
 from app.models import Tunnel
 from app.services.tunnel import TunnelCreationService, TunnelDeletionService
-from app.services.subdomain import SubdomainCreationService
 from app.utils.errors import TunnelError
 from tests.factories.user import UserFactory
 from tests.factories import subdomain, tunnel
@@ -204,7 +202,7 @@ class TestTunnels(object):
 
 class TestFailedTunnels(object):
     @mock.patch.object(
-        TunnelCreationService, "create_tunnel_nomad", return_value=[1, []]
+        TunnelCreationService, "create_tunnel_nomad", return_value=("1", [])
     )
     @mock.patch.object(
         TunnelCreationService,
@@ -213,10 +211,12 @@ class TestFailedTunnels(object):
         autospec=True,
     )
     @mock.patch.object(TunnelDeletionService, "delete")
+    @mock.patch("app.services.tunnel.cleanup_old_nomad_box.queue")
     def test_tunnel_delete_on_fail_deploy(
         self,
-        mock_del_tunnel,
-        mock_tunnel_details,
+        mock_del_tunnel_job,
+        mock_del_tunnel_from_db,
+        mock_get_tunnel_details,
         mock_create_tunnel,
         client,
         current_user,
@@ -233,8 +233,9 @@ class TestFailedTunnels(object):
         )
 
         assert res.status_code == 500, res.get_json()
-        assert mock_tunnel_details.called
-        assert mock_del_tunnel.called
+        assert mock_get_tunnel_details.called
+        assert not mock_del_tunnel_from_db.called
+        assert mock_del_tunnel_job.called
 
     @mock.patch.object(
         TunnelCreationService,
@@ -270,39 +271,3 @@ class TestFailedTunnels(object):
         assert not mock_get_tunnel_details.called
         assert not mock_del_tunnel_from_db.called
         assert not mock_del_tunnel_job.called
-
-    @mock.patch.object(
-        TunnelCreationService, "create_tunnel_nomad", return_value=("1", [])
-    )
-    @mock.patch.object(
-        TunnelCreationService,
-        "get_tunnel_details",
-        side_effect=TunnelError(detail="Error"),
-        autospec=True,
-    )
-    @mock.patch.object(TunnelDeletionService, "delete")
-    @mock.patch("app.services.tunnel.cleanup_old_nomad_box.queue")
-    def test_tunnel_delete_on_fail_deploy(
-        self,
-        mock_del_tunnel_job,
-        mock_del_tunnel_from_db,
-        mock_get_tunnel_details,
-        mock_create_tunnel,
-        client,
-        current_user,
-    ):
-        """Tunnel delete is called when provisioning it fails"""
-        res = client.post(
-            "/tunnels",
-            json={
-                "data": {
-                    "type": "tunnel",
-                    "attributes": {"port": ["http"], "sshKey": "i-am-lousy-public-key"},
-                }
-            },
-        )
-
-        assert res.status_code == 500, res.get_json()
-        assert mock_get_tunnel_details.called
-        assert not mock_del_tunnel_from_db.called
-        assert mock_del_tunnel_job.called

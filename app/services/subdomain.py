@@ -2,7 +2,7 @@ from app import db, momblish
 from app.models import Subdomain
 from app.utils.errors import SubdomainTaken, SubdomainInUse, SubdomainLimitReached
 
-subdomain_reserved_limits = {"free": 0, "paid": 5, "beta": 5}
+subdomain_reserved_limits = {"free": 0, "paid": 5, "beta": 5, "admin": 5}
 
 
 class SubdomainCreationService:

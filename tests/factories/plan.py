@@ -49,3 +49,13 @@ class PlanFactory(Factory):
             name="beta",
             stripe_id=None,
         )
+
+        admin = Trait(
+            tunnel_count=20,
+            bandwidth=10000,
+            forwards=100,
+            reserved_subdomains=5,
+            cost=0,
+            name="admin",
+            stripe_id=None,
+        )

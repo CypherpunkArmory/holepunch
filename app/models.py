@@ -37,6 +37,10 @@ class Plan(db.Model):  # type: ignore
     users = db.relationship("User")
 
     @staticmethod
+    def admin():
+        return Plan.query.filter_by(name="admin").first()
+
+    @staticmethod
     def paid():
         return Plan.query.filter_by(name="paid").first()
 
