@@ -146,3 +146,11 @@ def register_user():
         return json_api(e, ErrorSchema), 422
     except ValidationError as e:
         return json_api(BadRequest(source=e.message), ErrorSchema), 400
+
+
+@account_blueprint.route("/account", methods=["GET"])
+@jwt_required
+def get_user():
+    """ Get an existing User Record"""
+    current_user = User.query.filter_by(uuid=get_jwt_identity()).first_or_404()
+    return json_api(current_user, UserSchema), 200

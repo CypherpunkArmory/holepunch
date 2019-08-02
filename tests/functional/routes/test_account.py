@@ -3,6 +3,7 @@ from app.models import User, Subdomain, Tunnel
 from tests.factories import subdomain, tunnel
 from unittest import mock
 from app.services import authentication
+from tests.support.assertions import assert_valid_schema
 import re
 import jwt
 import requests
@@ -29,7 +30,7 @@ class TestAccount(object):
         )
 
         assert res.status_code == 200
-        assert send_confirm_email.call_count is 2
+        assert send_confirm_email.call_count == 2
         (email, token), _ = send_confirm_email.call_args
         assert email == "forgetful@gmail.com"
         assert re.match("http://localhost:5000/account/confirm(.*)", token)
@@ -405,3 +406,9 @@ class TestAccount(object):
         res = client.get(f"/account/confirm/{token}")
 
         assert res.status_code == 403
+
+    def test_get_user(self, current_user, client):
+        """Returns an access denied when old uuid is used in token"""
+        res = client.get("/account")
+        assert_valid_schema(res.get_data(), "user.json")
+        assert res.status_code == 200
