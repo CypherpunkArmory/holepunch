@@ -2,7 +2,13 @@
   "Job": {
     "Affinities": null,
     "AllAtOnce": false,
-    "Constraints": null,
+  "Constraints": [
+    {
+      "LTarget": "${meta.app}",
+      "RTarget": "holepunch",
+      "Operand": "="
+    }
+  ],
     "CreateIndex": 81,
     "Datacenters": [
       "city"
